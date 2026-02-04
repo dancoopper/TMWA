@@ -57,10 +57,37 @@ for project plans and specifications.
 
 # Local Supabase Setup
 
-## Sync with the remote database
+## Start the local development environment
+
+To start the local Supabase stack:
 
 ```bash
-supabase login
-supabase link
-supabase db pull
+supabase start
 ```
+
+This will spin up all the necessary Supabase services (Database, Auth, Storage,
+etc.) locally using Docker.
+
+## Setup .env.local
+
+After running `supabase start`, you will see output containing your local **API
+URL** and **Anon Key**. Create a `.env.local` file in the project root if it
+doesn't already exist, and add these values:
+
+```env
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=sb_publishable_...
+```
+
+## Email Verification Testing (Mailpit)
+
+The local Supabase setup includes an email testing server (Mailpit) that
+captures all emails sent by the auth system (e.g., confirmation links, password
+resets).
+
+You can access the web interface to view these emails at:
+
+[http://127.0.0.1:54324](http://127.0.0.1:54324)
+
+This is useful for clicking email verification links during local development
+without sending real emails.
