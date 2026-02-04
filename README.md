@@ -1,6 +1,7 @@
 # Time Management Web App
 
 ## Setup
+
 Install Dependencies
 
 ```bash
@@ -38,12 +39,28 @@ src/
 
 ### Architectural Patterns
 
-- **Feature-Based Organization**: Domain logic (e.g., `auth`) is encapsulated within `features/` for modularity.
-- **Repository Pattern**: API calls are abstracted in `repositories/` to separate data fetching from the UI.
+- **Feature-Based Organization**: Domain logic (e.g., `auth`) is encapsulated
+  within `features/` for modularity.
+- **Repository Pattern**: API calls are abstracted in `repositories/` to
+  separate data fetching from the UI.
 - **Global State**: Managed via Zustand stores in the `stores/` directory.
-- **Route Guards**: Navigation logic is handled by `ProtectedRoute` and `PublicRoute` components.
-- **Path Aliases**: Uses `@/` to reference the `src/` directory for cleaner imports.
+- **Route Guards**: Navigation logic is handled by `ProtectedRoute` and
+  `PublicRoute` components.
+- **Path Aliases**: Uses `@/` to reference the `src/` directory for cleaner
+  imports.
 
 ## Development Documentation
 
-Refer to the following [tldraw canvas](https://www.tldraw.com/f/2PeBOC2jJTkzWcgc5vShK?d=v-5000.-1002.9180.6313.page) for project plans and specifications.
+Refer to the following
+[tldraw canvas](https://www.tldraw.com/f/2PeBOC2jJTkzWcgc5vShK?d=v-5000.-1002.9180.6313.page)
+for project plans and specifications.
+
+# Local Supabase Setup
+
+## Sync with the remote database
+
+```bash
+supabase login
+supabase link
+supabase db pull
+```

@@ -7,7 +7,7 @@ export default function SignupPage() {
             w-full h-screen
             flex flex-row justify-center items-center"
         >
-            <SignupForm />;
+            <SignupForm />
         </div>
     );
 }
