@@ -29,4 +29,9 @@ export const authRepository = {
 
         return () => data.subscription.unsubscribe();
     },
+
+    async logout() {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+    },
 };

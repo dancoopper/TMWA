@@ -1,5 +1,6 @@
 import { useAuthStore } from "@/stores/authStore";
 import { Navigate, Outlet } from "react-router-dom";
+import { ROUTES } from "@/config/routes";
 
 export default function PublicRoute() {
     const { loading, session } = useAuthStore();
@@ -9,7 +10,7 @@ export default function PublicRoute() {
     }
 
     if (session) {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to={ROUTES.DASHBOARD} replace />;
     }
 
     return <Outlet />;

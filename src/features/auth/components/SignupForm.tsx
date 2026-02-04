@@ -12,6 +12,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { ROUTES } from "@/config/routes";
 
 export default function SignupForm() {
     const [email, setEmail] = useState("");
@@ -71,7 +72,7 @@ export default function SignupForm() {
                     <p>
                         Already have an account?{" "}
                         <Link
-                            to="/login"
+                            to={ROUTES.LOGIN}
                             className="text-blue-500 hover:underline"
                         >
                             Log in
