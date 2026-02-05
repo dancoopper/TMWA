@@ -1,3 +1,4 @@
+import { ROUTES } from "@/config/routes";
 import { supabase } from "@/lib/supabase";
 import type {
     Session,
@@ -10,7 +11,7 @@ export const authRepository = {
         const { data, error } = await supabase.auth.signUp({
             ...credentials,
             options: {
-                emailRedirectTo: `${window.location.origin}/auth/verify-email`,
+                emailRedirectTo: `${window.location.origin}${ROUTES.VERIFY_EMAIL}`,
             },
         });
         if (error) throw error;
