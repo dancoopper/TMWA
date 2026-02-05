@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import type {
     Session,
     SignUpWithPasswordCredentials,
+    SignInWithPasswordCredentials,
 } from "@supabase/supabase-js";
 
 export const authRepository = {
@@ -12,6 +13,13 @@ export const authRepository = {
                 emailRedirectTo: `${window.location.origin}/auth/verify-email`,
             },
         });
+        if (error) throw error;
+        return data;
+    },
+
+
+    async login(credentials: SignInWithPasswordCredentials) {
+        const { data, error } = await supabase.auth.signInWithPassword(credentials);
         if (error) throw error;
         return data;
     },
