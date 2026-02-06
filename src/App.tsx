@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import SignupPage from "./pages/auth/SignupPage";
+import OnboardingPage from "./pages/auth/OnboardingPage";
 import PublicRoute from "./routes/PublicRoute";
 import LandingPage from "./pages/LandingPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -36,6 +37,7 @@ export default function App() {
                     {/* Only authenticated users can enter */}
                     <Route element={<ProtectedRoute />}>
                         <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+                        <Route path={ROUTES.ONBOARDING} element={<OnboardingPage />} />
                     </Route>
 
                     {/* Accessible by anyone */}
