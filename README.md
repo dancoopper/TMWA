@@ -14,6 +14,18 @@ Running the App
 npm run dev
 ```
 
+## Dealing with DB using Local Supabase Studio
+
+Make changes needed to the database schema, then run:
+
+```bash
+npx supabase db diff -f [migration-name]
+```
+
+```bash
+npx supabase gen types typescript --local > src/types/database.types.ts
+```
+
 ## Project Structure
 
 ```text

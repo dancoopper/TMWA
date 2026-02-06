@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       events: {
@@ -101,7 +76,6 @@ export type Database = {
       }
       user_profiles: {
         Row: {
-          create_at: string
           first_name: string | null
           id: string
           is_onboarded: boolean | null
@@ -109,7 +83,6 @@ export type Database = {
           timezone: string | null
         }
         Insert: {
-          create_at?: string
           first_name?: string | null
           id: string
           is_onboarded?: boolean | null
@@ -117,7 +90,6 @@ export type Database = {
           timezone?: string | null
         }
         Update: {
-          create_at?: string
           first_name?: string | null
           id?: string
           is_onboarded?: boolean | null
@@ -212,21 +184,27 @@ export type Database = {
       workspaces: {
         Row: {
           created_at: string
+          description: string | null
           id: number
           name: string | null
           owner_user_id: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: number
           name?: string | null
           owner_user_id?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: number
           name?: string | null
           owner_user_id?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -379,9 +357,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
