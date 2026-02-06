@@ -6,7 +6,6 @@ export const WorkspaceSchema = z.object({
     description: z.string().default(""),
     ownerUserId: z.uuid(),
     createdAt: z.date().default(new Date()),
-    updatedAt: z.date().default(new Date()),
 });
 
 export type Workspace = z.infer<typeof WorkspaceSchema>;
