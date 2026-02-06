@@ -9,8 +9,7 @@ export function toUserProfile(row: ProfileRow): UserProfile {
 		firstName: row.first_name ?? '',
 		lastName: row.last_name ?? '',
 		isOnboarded: row.is_onboarded ?? false,
-		dateOfBirth: row.date_of_birth ?? new Date(),
-		timezone: row.timezone ?? '',
+		timezone: row.timezone ?? 'UTC',
 	};
 
 	return UserProfileSchema.parse(mappedData);
