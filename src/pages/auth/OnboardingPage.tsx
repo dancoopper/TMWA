@@ -16,7 +16,7 @@ export default function OnboardingPage() {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    
+
     const { mutate, isPending } = useOnboarding();
 
     const handleSubmit = (e: React.FormEvent) => {

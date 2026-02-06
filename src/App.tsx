@@ -11,6 +11,7 @@ import { useAuthStore } from "./stores/authStore";
 import { useEffect } from "react";
 import { Toaster } from "sonner";
 import EmailVerifyPage from "./pages/auth/EmailVerifyPage";
+import SettingsPage from "./pages/SettingsPage";
 import { ROUTES } from "@/config/routes";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ export default function App() {
                     <Route element={<ProtectedRoute />}>
                         <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
                         <Route path={ROUTES.ONBOARDING} element={<OnboardingPage />} />
+                        <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
                     </Route>
 
                     {/* Accessible by anyone */}
