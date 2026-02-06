@@ -102,7 +102,6 @@ export type Database = {
       user_profiles: {
         Row: {
           create_at: string
-          date_of_birth: string | null
           first_name: string | null
           id: string
           is_onboarded: boolean | null
@@ -111,7 +110,6 @@ export type Database = {
         }
         Insert: {
           create_at?: string
-          date_of_birth?: string | null
           first_name?: string | null
           id: string
           is_onboarded?: boolean | null
@@ -120,7 +118,6 @@ export type Database = {
         }
         Update: {
           create_at?: string
-          date_of_birth?: string | null
           first_name?: string | null
           id?: string
           is_onboarded?: boolean | null
