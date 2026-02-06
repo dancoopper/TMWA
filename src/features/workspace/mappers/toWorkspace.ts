@@ -8,6 +8,7 @@ export function toWorkspace(row: WorkspaceRow): Workspace {
 		id: row.id,
 		name: row.name ?? '',
 		description: row.description ?? '',
+		ownerUserId: row.owner_user_id ?? '',
 		createdAt: new Date(row.created_at),
 		updatedAt: new Date(row.updated_at),
 	};

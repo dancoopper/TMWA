@@ -124,24 +124,21 @@ export type Database = {
           },
         ]
       }
-      working_sessions: {
+      user_working_sessions: {
         Row: {
-          created_at: string
           id: number
+          latest_workspace_id: string | null
           user_id: string | null
-          workspace_id: string | null
         }
         Insert: {
-          created_at?: string
           id?: number
+          latest_workspace_id?: string | null
           user_id?: string | null
-          workspace_id?: string | null
         }
         Update: {
-          created_at?: string
           id?: number
+          latest_workspace_id?: string | null
           user_id?: string | null
-          workspace_id?: string | null
         }
         Relationships: []
       }
@@ -149,18 +146,21 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          is_owner: boolean
           user_id: string | null
           workspace_id: number | null
         }
         Insert: {
           created_at?: string
           id?: number
+          is_owner?: boolean
           user_id?: string | null
           workspace_id?: number | null
         }
         Update: {
           created_at?: string
           id?: number
+          is_owner?: boolean
           user_id?: string | null
           workspace_id?: number | null
         }
@@ -188,7 +188,6 @@ export type Database = {
           id: number
           name: string | null
           owner_user_id: string | null
-          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -196,7 +195,6 @@ export type Database = {
           id?: number
           name?: string | null
           owner_user_id?: string | null
-          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -204,7 +202,6 @@ export type Database = {
           id?: number
           name?: string | null
           owner_user_id?: string | null
-          updated_at?: string
         }
         Relationships: [
           {
