@@ -14,8 +14,14 @@ export default function ProtectedRoute() {
         return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
     }
 
-    if (!userProfile?.isOnboarded) {
+    const isOnboardingPage = location.pathname === ROUTES.ONBOARDING;
+
+    if (!userProfile?.isOnboarded && !isOnboardingPage) {
         return <Navigate to={ROUTES.ONBOARDING} replace />;
+    }
+
+    if (userProfile?.isOnboarded && isOnboardingPage) {
+        return <Navigate to={ROUTES.DASHBOARD} replace />;
     }
 
     return <Outlet />;
