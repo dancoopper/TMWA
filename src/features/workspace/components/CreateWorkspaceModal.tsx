@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -13,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateWorkspace } from "../hooks/useCreateWorkspace";
 
 interface CreateWorkspaceModalProps {
     children: React.ReactNode;
@@ -23,34 +23,44 @@ export default function CreateWorkspaceModal(
 ) {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("Untitled");
+    const [description, setDescription] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+    const { mutate: createWorkspace, isPending } = useCreateWorkspace();
+
+    const handleOpenChange = (open: boolean) => {
         if (open) {
             setName("Untitled");
-            setTimeout(() => {
-                if (inputRef.current) {
-                    inputRef.current.focus();
-                    inputRef.current.select();
-                }
-            }, 0);
+            setDescription("");
         }
-    }, [open]);
+        setOpen(open);
+    };
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement actual workspace creation logic
-        console.log("Creating workspace:", name);
-        setOpen(false);
-        setName("");
+
+        createWorkspace({ name, description }, {
+            onSuccess: () => {
+                setOpen(false);
+            },
+        });
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent
+                className="sm:max-w-[425px]"
+                onOpenAutoFocus={(e) => {
+                    e.preventDefault();
+                    if (inputRef.current) {
+                        inputRef.current.focus();
+                        inputRef.current.select();
+                    }
+                }}
+            >
                 <form onSubmit={handleCreate}>
                     <DialogHeader>
                         <DialogTitle>Create Workspace</DialogTitle>
@@ -59,8 +69,8 @@ export default function CreateWorkspaceModal(
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        <div className="flex flex-row gap-4">
-                            <Label htmlFor="name" className="text-right">
+                        <div className="flex flex-col gap-1">
+                            <Label htmlFor="name" className="text-gray-500">
                                 Name
                             </Label>
                             <Input
@@ -71,12 +81,31 @@ export default function CreateWorkspaceModal(
                                 className="col-span-3"
                                 placeholder="Untitled"
                                 required
+                                disabled={isPending}
                             />
-                            <DialogFooter>
-                                <Button type="submit">Create</Button>
-                            </DialogFooter>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <Label
+                                htmlFor="description"
+                                className="text-gray-500"
+                            >
+                                Description
+                            </Label>
+                            <Textarea
+                                id="description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="col-span-3 min-h-[100px]"
+                                placeholder="Enter a description..."
+                                disabled={isPending}
+                            />
                         </div>
                     </div>
+                    <DialogFooter>
+                        <Button type="submit" disabled={isPending}>
+                            {isPending ? "Creating..." : "Create"}
+                        </Button>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
