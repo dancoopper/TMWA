@@ -2,23 +2,19 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import {
     Calendar,
     CheckSquare,
-    Settings,
-    PanelLeftClose,
     PanelLeft,
+    PanelLeftClose,
+    Plus,
+    Settings,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/routes";
+import AddWorkspaceButton from "@/features/workspace/components/AddWorkspaceButton";
+import WorkspaceList from "@/features/workspace/components/WorkspaceList";
 
 const views = [
     { id: "calendar", label: "Calendar", icon: Calendar },
     { id: "tasks", label: "Tasks", icon: CheckSquare },
-];
-
-const workspaces = [
-    { id: "my-workspace", label: "My Workspace", isDefault: true },
-    { id: "capstone", label: "Capstone" },
-    { id: "family", label: "Family" },
-    { id: "work", label: "Work" },
 ];
 
 export default function Sidebar() {
@@ -32,19 +28,21 @@ export default function Sidebar() {
                 transition-all duration-500 ease-out
                 ${leftSidebarCollapsed ? "w-16" : "w-56"}
             `}
-            style={{ backgroundColor: '#d8d4c8' }}
+            style={{ backgroundColor: "#d8d4c8" }}
         >
             {/* Logo & Toggle */}
             <div className="flex items-center justify-between p-4 border-b border-stone-400/50">
-                {!leftSidebarCollapsed ? (
-                    <span className="font-bold text-base text-stone-700">
-                        TMWA
-                    </span>
-                ) : (
-                    <span className="font-bold text-xs text-stone-600 mx-auto">
-                        TM
-                    </span>
-                )}
+                {!leftSidebarCollapsed
+                    ? (
+                        <span className="font-bold text-base text-stone-700">
+                            TMWA
+                        </span>
+                    )
+                    : (
+                        <span className="font-bold text-xs text-stone-600 mx-auto">
+                            TM
+                        </span>
+                    )}
 
                 {/* Toggle Button - Integrated in header */}
                 {!leftSidebarCollapsed && (
@@ -83,12 +81,20 @@ export default function Sidebar() {
                                     w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
                                     text-stone-600 hover:text-stone-800 hover:bg-stone-300/50
                                     transition-all duration-200 text-xs
-                                    ${leftSidebarCollapsed ? "justify-center" : ""}
-                                    ${idx === 0 ? "bg-stone-300/40 text-stone-800" : ""}
+                                    ${
+                                    leftSidebarCollapsed ? "justify-center" : ""
+                                }
+                                    ${
+                                    idx === 0
+                                        ? "bg-stone-300/40 text-stone-800"
+                                        : ""
+                                }
                                 `}
                             >
                                 <view.icon className="w-3.5 h-3.5 shrink-0" />
-                                {!leftSidebarCollapsed && <span>{view.label}</span>}
+                                {!leftSidebarCollapsed && (
+                                    <span>{view.label}</span>
+                                )}
                             </button>
                         ))}
                     </nav>
@@ -97,28 +103,14 @@ export default function Sidebar() {
                 {/* Workspaces Section */}
                 <div>
                     {!leftSidebarCollapsed && (
-                        <h3 className="px-2 py-1.5 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
-                            Workspaces
-                        </h3>
+                        <div className="flex flex-row justify-between">
+                            <h3 className="px-2 py-1.5 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
+                                Workspaces
+                            </h3>
+                            <AddWorkspaceButton />
+                        </div>
                     )}
-                    <nav className="space-y-0.5">
-                        {workspaces.map((workspace) => (
-                            <button
-                                key={workspace.id}
-                                className={`
-                                    w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
-                                    text-stone-600 hover:text-stone-800 hover:bg-stone-300/50
-                                    transition-all duration-200 text-xs
-                                    ${leftSidebarCollapsed ? "justify-center" : ""}
-                                `}
-                            >
-                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${workspace.isDefault ? "bg-sky-500" : "bg-stone-500"}`} />
-                                {!leftSidebarCollapsed && (
-                                    <span>{workspace.label}</span>
-                                )}
-                            </button>
-                        ))}
-                    </nav>
+                    <WorkspaceList />
                 </div>
             </div>
 
