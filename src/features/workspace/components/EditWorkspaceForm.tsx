@@ -9,11 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 interface EditWorkspaceFormProps {
     workspace: Workspace;
     onSuccess?: () => void;
+    children?: React.ReactNode;
 }
 
 export default function EditWorkspaceForm({
     workspace,
     onSuccess,
+    children,
 }: EditWorkspaceFormProps) {
     const [name, setName] = useState(workspace.name);
     const [description, setDescription] = useState(workspace.description || "");
@@ -43,7 +45,7 @@ export default function EditWorkspaceForm({
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-                <Label htmlFor="name">Workspace Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                     id="name"
                     value={name}
@@ -61,7 +63,10 @@ export default function EditWorkspaceForm({
                     placeholder="What is this workspace for?"
                 />
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center pt-2">
+                <div className="flex items-center gap-2">
+                    {children}
+                </div>
                 <Button type="submit" disabled={isPending}>
                     {isPending ? "Saving..." : "Save Changes"}
                 </Button>

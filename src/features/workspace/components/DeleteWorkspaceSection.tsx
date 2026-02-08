@@ -10,9 +10,11 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
+    AlertDialogMedia,
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Trash, Trash2 } from "lucide-react";
 
 interface DeleteWorkspaceSectionProps {
     workspace: Workspace;
@@ -36,48 +38,45 @@ export default function DeleteWorkspaceSection({
     };
 
     return (
-        <div className="border border-red-200 rounded-md p-4 bg-red-50/50">
-            <h3 className="text-sm font-medium text-red-900 mb-2">
-                Danger Zone
-            </h3>
-            <p className="text-xs text-red-600 mb-4">
-                Deleting a workspace is permanent and cannot be undone. All data
-                associated with this workspace will be lost.
-            </p>
-
-            <AlertDialog open={open} onOpenChange={setOpen}>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                        Delete Workspace
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Are you absolutely sure?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the workspace{" "}
-                            <strong>{workspace.name}</strong>{" "}
-                            and remove all associated data.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleDelete();
-                            }}
-                            disabled={isPending}
-                        >
-                            {isPending ? "Deleting..." : "Delete Workspace"}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </div>
+        <AlertDialog open={open} onOpenChange={setOpen}>
+            <AlertDialogTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                    <Trash className="w-3.5 h-3.5 mr-2" />
+                    Delete Workspace
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent size="sm">
+                <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                        <Trash2 className="w-6 h-6" />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will permanently delete the workspace{" "}
+                        <strong>{workspace.name}</strong>. This action cannot be
+                        undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel variant="outline">
+                        Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                        variant="destructive"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete();
+                        }}
+                        disabled={isPending}
+                    >
+                        {isPending ? "Deleting..." : "Delete"}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }

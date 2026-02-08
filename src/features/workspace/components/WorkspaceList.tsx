@@ -30,13 +30,12 @@ export default function WorkspaceList() {
                     className={`
                         w-full flex items-center justify-between px-2.5 py-2 rounded-md
                         text-stone-600 hover:bg-stone-600 hover:text-stone-100
-                        cursor-pointer
                         transition-all duration-200 text-xs group
                         ${leftSidebarCollapsed ? "justify-center" : ""}
                     `}
                 >
                     <button
-                        className="flex items-center gap-2.5 flex-1 text-left min-w-0 cursor-pointer"
+                        className="flex items-center gap-2.5 flex-1 text-left min-w-0"
                         onClick={() => {
                             // TODO: Handle workspace selection
                         }}
@@ -52,7 +51,7 @@ export default function WorkspaceList() {
                     {!leftSidebarCollapsed && (
                         <button
                             className="opacity-0 group-hover:opacity-100 p-1 
-                            rounded transition-all cursor-pointer outline-none
+                            rounded transition-all outline-none
                             hover:bg-stone-300/20 text-stone-200 hover:text-stone-200"
                             onClick={(e) => {
                                 e.stopPropagation();
