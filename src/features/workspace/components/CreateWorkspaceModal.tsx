@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -22,7 +22,20 @@ export default function CreateWorkspaceModal(
     { children }: CreateWorkspaceModalProps,
 ) {
     const [open, setOpen] = useState(false);
-    const [name, setName] = useState("");
+    const [name, setName] = useState("Untitled");
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (open) {
+            setName("Untitled");
+            setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                    inputRef.current.select();
+                }
+            }, 0);
+        }
+    }, [open]);
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,10 +65,11 @@ export default function CreateWorkspaceModal(
                             </Label>
                             <Input
                                 id="name"
+                                ref={inputRef}
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="col-span-3"
-                                placeholder="My Awesome Workspace"
+                                placeholder="Untitled"
                                 required
                             />
                             <DialogFooter>

@@ -4,7 +4,6 @@ import {
     CheckSquare,
     PanelLeft,
     PanelLeftClose,
-    Plus,
     Settings,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
