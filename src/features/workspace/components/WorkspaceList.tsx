@@ -1,18 +1,34 @@
 "use client";
 
 import { useWorkspaces } from "@/features/workspace/hooks/useWorkspaces";
+import { useDeleteWorkspace } from "@/features/workspace/hooks/useDeleteWorkspace";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { Edit, MoreVertical, Trash } from "lucide-react";
+import { useState } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function WorkspaceList() {
     const { data: workspaces, isLoading } = useWorkspaces();
     const { leftSidebarCollapsed } = useDashboardStore();
+    const { mutate: deleteWorkspace } = useDeleteWorkspace();
+    const [workspaceToDelete, setWorkspaceToDelete] = useState<string | null>(
+        null,
+    );
 
     if (isLoading) {
         return (
@@ -75,10 +91,12 @@ export default function WorkspaceList() {
                                     className="text-red-600 focus:text-red-600"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // TODO: Handle delete
+                                        setWorkspaceToDelete(
+                                            workspace.id.toString(),
+                                        );
                                     }}
                                 >
-                                    <Trash className="w-3.5 h-3.5 mr-2" />
+                                    <Trash className="w-3.5 h-3.5 mr-2 text-red-600" />
                                     Delete
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -86,6 +104,39 @@ export default function WorkspaceList() {
                     )}
                 </div>
             ))}
+
+            <AlertDialog
+                open={!!workspaceToDelete}
+                onOpenChange={(open) => !open && setWorkspaceToDelete(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete the workspace and remove all associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                            onClick={() => {
+                                if (workspaceToDelete) {
+                                    deleteWorkspace(
+                                        parseInt(workspaceToDelete),
+                                    );
+                                    setWorkspaceToDelete(null);
+                                }
+                            }}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
