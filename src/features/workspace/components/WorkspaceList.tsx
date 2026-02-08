@@ -1,39 +1,14 @@
 "use client";
 
 import { useWorkspaces } from "@/features/workspace/hooks/useWorkspaces";
-import { useDeleteWorkspace } from "@/features/workspace/hooks/useDeleteWorkspace";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { Edit, MoreVertical, Trash } from "lucide-react";
-import { useState } from "react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import EditWorkspaceModal from "@/features/workspace/components/EditWorkspaceModal";
-import { type Workspace } from "@/features/workspace/models/Workspace";
+import { Pen } from "lucide-react";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 export default function WorkspaceList() {
     const { data: workspaces, isLoading } = useWorkspaces();
     const { leftSidebarCollapsed } = useDashboardStore();
-    const { mutate: deleteWorkspace } = useDeleteWorkspace();
-    const [workspaceToDelete, setWorkspaceToDelete] = useState<string | null>(
-        null,
-    );
-    const [workspaceToEdit, setWorkspaceToEdit] = useState<Workspace | null>(
-        null,
-    );
+    const { openSettings } = useWorkspaceStore();
 
     if (isLoading) {
         return (
@@ -75,79 +50,21 @@ export default function WorkspaceList() {
                     </button>
 
                     {!leftSidebarCollapsed && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="opacity-0 group-hover:opacity-100 p-0.5 
-                                rounded transition-all cursor-pointer outline-none">
-                                    <MoreVertical className="w-4 h-4 text-stone-100" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
-                                <DropdownMenuItem
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setWorkspaceToEdit(workspace);
-                                    }}
-                                >
-                                    <Edit className="w-3.5 h-3.5 mr-2" />
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setWorkspaceToDelete(
-                                            workspace.id.toString(),
-                                        );
-                                    }}
-                                >
-                                    <Trash className="w-3.5 h-3.5 mr-2 text-red-600" />
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <button
+                            className="opacity-0 group-hover:opacity-100 p-1 
+                            rounded transition-all cursor-pointer outline-none
+                            hover:bg-stone-300/20 text-stone-200 hover:text-stone-200"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openSettings(workspace);
+                            }}
+                            title="Workspace Settings"
+                        >
+                            <Pen className="w-3.5 h-3.5" />
+                        </button>
                     )}
                 </div>
             ))}
-
-            <AlertDialog
-                open={!!workspaceToDelete}
-                onOpenChange={(open) => !open && setWorkspaceToDelete(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Are you absolutely sure?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the workspace and remove all associated data.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                            onClick={() => {
-                                if (workspaceToDelete) {
-                                    deleteWorkspace(
-                                        parseInt(workspaceToDelete),
-                                    );
-                                    setWorkspaceToDelete(null);
-                                }
-                            }}
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <EditWorkspaceModal
-                workspace={workspaceToEdit}
-                open={!!workspaceToEdit}
-                onOpenChange={(open) => !open && setWorkspaceToEdit(null)}
-            />
         </div>
     );
 }
