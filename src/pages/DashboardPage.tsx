@@ -6,7 +6,6 @@ import {
     Sidebar,
 } from "@/features/dashboard/components";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import WorkspaceSettingsModal from "@/features/workspace/components/WorkspaceSettingsModal";
 
 export default function DashboardPage() {
     const { calendarView } = useDashboardStore();
@@ -54,9 +53,6 @@ export default function DashboardPage() {
 
             {/* Right Day Detail Panel */}
             <DayDetailPanel />
-
-            {/* Global Modals */}
-            <WorkspaceSettingsModal />
         </div>
     );
 }

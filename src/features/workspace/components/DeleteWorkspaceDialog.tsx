@@ -16,15 +16,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash, Trash2 } from "lucide-react";
 
-interface DeleteWorkspaceSectionProps {
+interface DeleteWorkspaceDialogProps {
+    trigger: React.ReactNode;
     workspace: Workspace;
-    onSuccess?: () => void;
 }
 
-export default function DeleteWorkspaceSection({
+export default function DeleteWorkspaceDialog({
+    trigger,
     workspace,
-    onSuccess,
-}: DeleteWorkspaceSectionProps) {
+}: DeleteWorkspaceDialogProps) {
     const [open, setOpen] = useState(false);
     const { mutate: deleteWorkspace, isPending } = useDeleteWorkspace();
 
@@ -32,7 +32,6 @@ export default function DeleteWorkspaceSection({
         deleteWorkspace(workspace.id, {
             onSuccess: () => {
                 setOpen(false);
-                onSuccess?.();
             },
         });
     };
@@ -40,14 +39,7 @@ export default function DeleteWorkspaceSection({
     return (
         <AlertDialog open={open} onOpenChange={setOpen}>
             <AlertDialogTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                    <Trash className="w-3.5 h-3.5 mr-2" />
-                    Delete Workspace
-                </Button>
+                {trigger}
             </AlertDialogTrigger>
             <AlertDialogContent size="sm">
                 <AlertDialogHeader>

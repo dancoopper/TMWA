@@ -4,11 +4,12 @@ import {
     CheckSquare,
     PanelLeft,
     PanelLeftClose,
+    Plus,
     Settings,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/routes";
-import AddWorkspaceButton from "@/features/workspace/components/AddWorkspaceButton";
+import CreateWorkspaceDialog from "@/features/workspace/components/CreateWorkspaceDialog";
 import WorkspaceList from "@/features/workspace/components/WorkspaceList";
 
 const views = [
@@ -100,17 +101,26 @@ export default function Sidebar() {
                 </div>
 
                 {/* Workspaces Section */}
-                <div>
-                    {!leftSidebarCollapsed && (
+                {!leftSidebarCollapsed && (
+                    <div>
                         <div className="flex flex-row justify-between">
                             <h3 className="px-2 py-1.5 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
                                 Workspaces
                             </h3>
-                            <AddWorkspaceButton />
+                            <CreateWorkspaceDialog
+                                trigger={
+                                    <button className="p-1.5 rounded-md 
+                                    text-stone-500 hover:bg-stone-500 hover:text-white 
+                                    active:translate-y-0.5 transition-all duration-200 cursor-pointer">
+                                        <Plus className="w-3.5 h-3.5 shrink-0" />
+                                    </button>
+                                }
+                            />
                         </div>
-                    )}
-                    <WorkspaceList />
-                </div>
+
+                        <WorkspaceList />
+                    </div>
+                )}
             </div>
 
             {/* Settings Button */}
