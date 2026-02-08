@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/routes";
+import LogoutButton from "@/features/auth/components/LogoutButton";
 
 export default function SettingsPage() {
     const navigate = useNavigate();
@@ -25,9 +26,7 @@ export default function SettingsPage() {
                         <h2 className="text-lg font-semibold text-foreground mb-2">
                             Account Settings
                         </h2>
-                        <p className="text-muted-foreground">
-                            Coming soon...
-                        </p>
+                        <LogoutButton />
                     </div>
 
                     <div className="p-6 bg-card border border-border rounded-lg">
@@ -47,6 +46,8 @@ export default function SettingsPage() {
                             Coming soon...
                         </p>
                     </div>
+
+
                 </div>
             </div>
         </div>

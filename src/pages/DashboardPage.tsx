@@ -1,9 +1,9 @@
 import {
-    Sidebar,
-    DayDetailPanel,
-    CalendarHeader,
     CalendarGrid,
+    CalendarHeader,
     CalendarWeekView,
+    DayDetailPanel,
+    Sidebar,
 } from "@/features/dashboard/components";
 import { useDashboardStore } from "@/stores/dashboardStore";
 
@@ -13,7 +13,7 @@ export default function DashboardPage() {
     return (
         <div
             className="flex h-screen w-full overflow-hidden"
-            style={{ backgroundColor: '#e8e4d9' }}
+            style={{ backgroundColor: "#e8e4d9" }}
         >
             {/* Left Sidebar */}
             <Sidebar />
@@ -27,10 +27,11 @@ export default function DashboardPage() {
                     <div
                         className={`
                             absolute inset-0 transition-all duration-500 ease-out
-                            ${calendarView === "month"
+                            ${
+                            calendarView === "month"
                                 ? "opacity-100 translate-x-0"
                                 : "opacity-0 -translate-x-full pointer-events-none"
-                            }
+                        }
                         `}
                     >
                         <CalendarGrid />
@@ -38,10 +39,11 @@ export default function DashboardPage() {
                     <div
                         className={`
                             absolute inset-0 transition-all duration-500 ease-out
-                            ${calendarView === "week"
+                            ${
+                            calendarView === "week"
                                 ? "opacity-100 translate-x-0"
                                 : "opacity-0 translate-x-full pointer-events-none"
-                            }
+                        }
                         `}
                     >
                         <CalendarWeekView />
