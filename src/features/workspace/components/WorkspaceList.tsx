@@ -21,12 +21,17 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import EditWorkspaceModal from "@/features/workspace/components/EditWorkspaceModal";
+import { type Workspace } from "@/features/workspace/models/Workspace";
 
 export default function WorkspaceList() {
     const { data: workspaces, isLoading } = useWorkspaces();
     const { leftSidebarCollapsed } = useDashboardStore();
     const { mutate: deleteWorkspace } = useDeleteWorkspace();
     const [workspaceToDelete, setWorkspaceToDelete] = useState<string | null>(
+        null,
+    );
+    const [workspaceToEdit, setWorkspaceToEdit] = useState<Workspace | null>(
         null,
     );
 
@@ -81,7 +86,7 @@ export default function WorkspaceList() {
                                 <DropdownMenuItem
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // TODO: Handle edit
+                                        setWorkspaceToEdit(workspace);
                                     }}
                                 >
                                     <Edit className="w-3.5 h-3.5 mr-2" />
@@ -137,6 +142,12 @@ export default function WorkspaceList() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <EditWorkspaceModal
+                workspace={workspaceToEdit}
+                open={!!workspaceToEdit}
+                onOpenChange={(open) => !open && setWorkspaceToEdit(null)}
+            />
         </div>
     );
 }
