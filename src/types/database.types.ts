@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      event_schemas: {
+        Row: {
+          created_at: string
+          id: number
+          schema_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          schema_data?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          schema_data?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           event_data: Json | null
@@ -33,7 +62,7 @@ export type Database = {
             foreignKeyName: "events_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
-            referencedRelation: "templates"
+            referencedRelation: "event_schemas"
             referencedColumns: ["id"]
           },
           {
@@ -41,35 +70,6 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      templates: {
-        Row: {
-          created_at: string
-          event_schema: Json | null
-          id: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_schema?: Json | null
-          id?: number
-          user_id?: string
-        }
-        Update: {
-          created_at?: string
-          event_schema?: Json | null
-          id?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "templates_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -124,21 +124,24 @@ export type Database = {
           },
         ]
       }
-      user_working_sessions: {
+      working_sessions: {
         Row: {
+          created_at: string
           id: number
-          latest_workspace_id: string | null
           user_id: string | null
+          workspace_id: string | null
         }
         Insert: {
+          created_at?: string
           id?: number
-          latest_workspace_id?: string | null
           user_id?: string | null
+          workspace_id?: string | null
         }
         Update: {
+          created_at?: string
           id?: number
-          latest_workspace_id?: string | null
           user_id?: string | null
+          workspace_id?: string | null
         }
         Relationships: []
       }
@@ -146,21 +149,18 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          is_owner: boolean
           user_id: string | null
           workspace_id: number | null
         }
         Insert: {
           created_at?: string
           id?: number
-          is_owner?: boolean
           user_id?: string | null
           workspace_id?: number | null
         }
         Update: {
           created_at?: string
           id?: number
-          is_owner?: boolean
           user_id?: string | null
           workspace_id?: number | null
         }
@@ -184,21 +184,18 @@ export type Database = {
       workspaces: {
         Row: {
           created_at: string
-          description: string | null
           id: number
           name: string | null
           owner_user_id: string | null
         }
         Insert: {
           created_at?: string
-          description?: string | null
           id?: number
           name?: string | null
           owner_user_id?: string | null
         }
         Update: {
           created_at?: string
-          description?: string | null
           id?: number
           name?: string | null
           owner_user_id?: string | null
