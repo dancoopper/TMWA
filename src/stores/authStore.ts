@@ -45,7 +45,12 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({ session, userProfile, loading: false });
         } catch (error) {
             console.error("Error initializing auth store:", error);
-            set({ loading: false });
+            try {
+                await authRepository.logout();
+            } catch (logoutError) {
+                console.error("Error logging out during recovery:", logoutError);
+            }
+            set({ session: null, userProfile: null, loading: false });
         }
 
         authRepository.onAuthStateChange(async (session) => {

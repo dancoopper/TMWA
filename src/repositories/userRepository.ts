@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { toUserProfile } from "@/features/auth/mappers/toUserProfile";
 import { type UserProfile } from "@/features/auth/models/UserProfile";
+import { toUserWorkingSession } from "@/features/workspace/mappers/toUserWorkingSession";
+import { type UserWorkingSession } from "@/features/workspace/models/UserWorkingSession";
 
 export const userRepository = {
     async getProfile(userId: string): Promise<UserProfile> {
@@ -37,6 +39,32 @@ export const userRepository = {
                 timezone: updates.timezone,
             })
             .eq("id", userId);
+
+        if (error) throw error;
+    },
+
+    async getWorkingSession(userId: string): Promise<UserWorkingSession | null> {
+        const { data, error } = await supabase
+            .from("user_working_sessions")
+            .select("*")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!data) return null;
+
+        return toUserWorkingSession(data);
+    },
+
+    async updateLatestWorkspace(userId: string, workspaceId: number | null): Promise<void> {
+        const { error } = await supabase
+            .from("user_working_sessions")
+            .upsert({
+                user_id: userId,
+                latest_workspace_id: workspaceId?.toString() ?? null,
+            }, {
+                onConflict: "user_id"
+            });
 
         if (error) throw error;
     },
