@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/routes";
 import CreateWorkspaceDialog from "@/features/workspace/components/CreateWorkspaceDialog";
 import WorkspaceList from "@/features/workspace/components/WorkspaceList";
+import { useWorkspaceSelectionSync } from "@/features/workspace/hooks/useWorkspaceSelectionSync";
 
 const views = [
     { id: "calendar", label: "Calendar", icon: Calendar },
@@ -19,6 +20,7 @@ const views = [
 
 export default function Sidebar() {
     const { leftSidebarCollapsed, toggleLeftSidebar } = useDashboardStore();
+    useWorkspaceSelectionSync();
     const navigate = useNavigate();
 
     return (

@@ -57,15 +57,60 @@ export const userRepository = {
     },
 
     async updateLatestWorkspace(userId: string, workspaceId: number | null): Promise<void> {
+        const payload = {
+            user_id: userId,
+            latest_workspace_id: workspaceId,
+        };
+
         const { error } = await supabase
             .from("user_working_sessions")
-            .upsert({
-                user_id: userId,
-                latest_workspace_id: workspaceId?.toString() ?? null,
-            }, {
+            .upsert(payload, {
                 onConflict: "user_id"
             });
 
-        if (error) throw error;
+        if (!error) return;
+
+        // Fallback for environments where user_id is not uniquely constrained yet.
+        if (error.code !== "42P10") throw error;
+
+        const { data: existingRows, error: selectError } = await supabase
+            .from("user_working_sessions")
+            .select("id")
+            .eq("user_id", userId)
+            .order("id", { ascending: false });
+
+        if (selectError) throw selectError;
+
+        if (existingRows.length > 0) {
+            const [latestRow] = existingRows;
+
+            const { error: updateError } = await supabase
+                .from("user_working_sessions")
+                .update({ latest_workspace_id: workspaceId })
+                .eq("id", latestRow.id);
+
+            if (updateError) throw updateError;
+
+            // Keep one effective row for the user to mimic one-to-one behavior.
+            if (existingRows.length > 1) {
+                const staleIds = existingRows.slice(1).map((row) => row.id);
+                const { error: deleteError } = await supabase
+                    .from("user_working_sessions")
+                    .delete()
+                    .in("id", staleIds);
+
+                if (deleteError) {
+                    console.error("Failed cleaning duplicate user_working_sessions rows:", deleteError);
+                }
+            }
+
+            return;
+        }
+
+        const { error: insertError } = await supabase
+            .from("user_working_sessions")
+            .insert(payload);
+
+        if (insertError) throw insertError;
     },
 };

@@ -11,9 +11,11 @@ import {
 import DeleteWorkspaceDialog from "./DeleteWorkspaceDialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useDashboardStore } from "@/stores/dashboardStore";
 
 export default function WorkspaceList() {
     const { data: workspaces, isLoading } = useWorkspaces();
+    const { selectedWorkspaceId, setSelectedWorkspaceId } = useDashboardStore();
 
     if (isLoading) {
         return (
@@ -34,16 +36,18 @@ export default function WorkspaceList() {
                     key={workspace.id}
                     className={`
                         w-full flex items-center justify-between px-2.5 py-2 rounded-md
-                        text-stone-600 hover:bg-stone-600 hover:text-stone-100
                         transition-all duration-200 text-xs group
+                        ${selectedWorkspaceId === workspace.id
+                            ? "bg-stone-400/60 text-stone-800"
+                            : "text-stone-600 hover:bg-stone-600 hover:text-stone-100"}
                     `}
                 >
                     <button
                         className="flex items-center gap-2.5 flex-1 text-left min-w-0"
-                        onClick={() => console.log(workspace.id)}
+                        onClick={() => setSelectedWorkspaceId(workspace.id)}
                     >
                         <div
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 bg-stone-500`}
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedWorkspaceId === workspace.id ? "bg-stone-700" : "bg-stone-500"}`}
                         />
                         <span className="truncate">{workspace.name}</span>
                     </button>
@@ -53,7 +57,7 @@ export default function WorkspaceList() {
                             <button
                                 className="opacity-0 group-hover:opacity-100 p-1 
                             rounded transition-all outline-none
-                            hover:bg-stone-300/20 text-stone-200 hover:text-stone-200"
+                            hover:bg-stone-300/20 text-stone-400 hover:text-stone-600"
                             >
                                 <EllipsisVertical className="w-3.5 h-3.5" />
                             </button>

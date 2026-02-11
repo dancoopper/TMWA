@@ -7,7 +7,7 @@ export function toUserWorkingSession(row: UserWorkingSessionRow): UserWorkingSes
     const mappedData = {
         id: row.id,
         userId: row.user_id ?? '',
-        latestWorkspaceId: row.latest_workspace_id ? parseInt(row.latest_workspace_id, 10) : null,
+        latestWorkspaceId: row.latest_workspace_id ?? null,
     };
 
     return UserWorkingSessionSchema.parse(mappedData);
