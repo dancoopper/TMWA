@@ -8,11 +8,13 @@ type DashboardState = {
     calendarView: CalendarView;
     selectedDate: Date;
     searchQuery: string;
+    selectedWorkspaceId: number | null;
     toggleLeftSidebar: () => void;
     toggleRightPanel: () => void;
     setCalendarView: (view: CalendarView) => void;
     setSelectedDate: (date: Date) => void;
     setSearchQuery: (query: string) => void;
+    setSelectedWorkspaceId: (workspaceId: number | null) => void;
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -21,6 +23,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     calendarView: "month",
     selectedDate: new Date(),
     searchQuery: "",
+    selectedWorkspaceId: null,
 
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarCollapsed: !state.leftSidebarCollapsed })),
@@ -33,4 +36,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     setSelectedDate: (date) => set({ selectedDate: date }),
 
     setSearchQuery: (query) => set({ searchQuery: query }),
+
+    setSelectedWorkspaceId: (workspaceId) =>
+        set({ selectedWorkspaceId: workspaceId }),
 }));

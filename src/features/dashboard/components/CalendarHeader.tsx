@@ -1,10 +1,22 @@
 import { useDashboardStore } from "@/stores/dashboardStore";
+import { useWorkspaces } from "@/features/workspace/hooks/useWorkspaces";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Users, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CalendarHeader() {
-    const { calendarView, setCalendarView, searchQuery, setSearchQuery, selectedDate, setSelectedDate } = useDashboardStore();
+    const {
+        calendarView,
+        setCalendarView,
+        searchQuery,
+        setSearchQuery,
+        selectedDate,
+        setSelectedDate,
+        selectedWorkspaceId,
+    } = useDashboardStore();
+    const { data: workspaces } = useWorkspaces();
+    const selectedWorkspace = workspaces?.find((workspace) => workspace.id === selectedWorkspaceId);
+    const workspaceName = selectedWorkspace?.name ?? workspaces?.[0]?.name ?? "Workspace";
 
     const goToPrev = () => {
         const newDate = new Date(selectedDate);
@@ -33,16 +45,21 @@ export default function CalendarHeader() {
             className="flex items-center justify-between gap-4 px-4 py-2.5 border-b border-stone-400/50 shrink-0"
             style={{ backgroundColor: '#d8d4c8' }}
         >
-            {/* Search */}
-            <div className="relative flex-1 max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
-                <Input
-                    type="text"
-                    placeholder="Search for specific tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 py-1.5 h-8 bg-white border-stone-300 rounded-md focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 transition-all duration-200 text-xs"
-                />
+            {/* Workspace + Search */}
+            <div className="flex items-center gap-2.5 flex-1 min-w-0 max-w-md">
+                <span className="px-2.5 py-1 text-[11px] font-semibold text-stone-700 bg-stone-300/50 rounded-md truncate">
+                    {workspaceName}
+                </span>
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                    <Input
+                        type="text"
+                        placeholder="Search for specific tasks..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 py-1.5 h-8 bg-white border-stone-300 rounded-md focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 transition-all duration-200 text-xs"
+                    />
+                </div>
             </div>
 
             {/* Navigation & View Toggle */}
