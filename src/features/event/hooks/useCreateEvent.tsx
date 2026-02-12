@@ -8,7 +8,6 @@ import { type Event } from "@/features/event/models/Event";
 
 export function useCreateEvent() {
     const { session, userProfile } = useAuthStore();
-    const { setSelectedWorkspaceId } = useDashboardStore();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -23,15 +22,16 @@ export function useCreateEvent() {
             const userId = session?.user.id || userProfile?.id;
 
             if (!userId) {
-                throw new Error("No user ID found");
+                throw new Error("No event ID found");
             }
 
             return await eventRepository.createEvent({
-                name,
+                id: "",
                 event_data: {
                     description,
                 },
-                userId,
+                template_id: 1,
+                workspaces_id: 1,
             });
         },
         onSuccess: async (event) => {

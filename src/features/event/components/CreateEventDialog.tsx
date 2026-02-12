@@ -16,9 +16,18 @@ import {
 } from "@/components/ui/dialog";
 
 
+
 interface CreateEventDialogProps {
     trigger: React.ReactNode;
 }
+
+const event_data = [{
+    id: Date.now(),
+    value: "",
+}]
+
+
+
 
 export default function CreateEventDialog({
     trigger
@@ -33,10 +42,9 @@ export default function CreateEventDialog({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        createEvent({ name, description }, {
+        createEvent({ JSON.stringify(event_data), template_id: 1, workspaces_id: 1 }, {
             onSuccess: () => {
-                setName("Untitled");
-                setDescription("");
+
                 setIsOpen(false);
             },
         });
