@@ -28,7 +28,7 @@ export function useCreateEvent() {
 
             return await eventRepository.createEvent({
                 name,
-                event_data: {
+                eventData: {
                     description,
                 },
                 userId,
