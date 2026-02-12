@@ -55,15 +55,14 @@ export default function CalendarMonthCell({
             {eventItems.length > 0 ? (
                 <div className="mt-1 space-y-1">
                     {visibleEvents.map((event) => (
-                        <button
+                        <p
                             key={event.id}
-                            type="button"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onEventClick?.(event.id);
                             }}
                             className={`
-                                w-full text-left text-[10px] leading-tight truncate flex items-center gap-1
+                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer
                                 ${isCurrent
                                     ? (isToday ? "text-stone-200/90" : "text-stone-700")
                                     : (variant === "next"
@@ -74,7 +73,7 @@ export default function CalendarMonthCell({
                         >
                             <span className="text-[9px] leading-none">•</span>
                             <span className="truncate">{event.title}</span>
-                        </button>
+                        </p>
                     ))}
                     {remainingEventCount > 0 ? (
                         <span

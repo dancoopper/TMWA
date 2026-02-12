@@ -221,14 +221,13 @@ export default function CalendarWeekView() {
                                         }}
                                     >
                                         {slotEvents.slice(0, 1).map((event) => (
-                                            <button
+                                            <div
                                                 key={event.id}
-                                                type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     selectEvent(event);
                                                 }}
-                                                className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1"
+                                                className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1 cursor-pointer"
                                                 title={event.title}
                                             >
                                                 <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">
@@ -237,7 +236,7 @@ export default function CalendarWeekView() {
                                                 <p className="text-[9px] leading-tight truncate text-stone-600">
                                                     {getEventDataPreview(event.data)}
                                                 </p>
-                                            </button>
+                                            </div>
                                         ))}
                                         {slotEvents.length > 1 ? (
                                             <p className="text-[10px] leading-tight text-stone-500">
