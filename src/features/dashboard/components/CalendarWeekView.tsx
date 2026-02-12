@@ -49,6 +49,20 @@ function formatHourLabel(hour24: number) {
     return `${hour12}${suffix}`;
 }
 
+function formatCurrentTimeLabel(date: Date) {
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+}
+
+function isSameDay(a: Date, b: Date) {
+    return (
+        a.getDate() === b.getDate() &&
+        a.getMonth() === b.getMonth() &&
+        a.getFullYear() === b.getFullYear()
+    );
+}
+
 export default function CalendarWeekView() {
     const { selectedDate, setSelectedDate } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
@@ -95,6 +109,12 @@ export default function CalendarWeekView() {
         if (!dayMap) return [];
         return dayMap.get(hour) ?? [];
     };
+    const currentHour = today.getHours();
+    const currentMinute = today.getMinutes();
+    const currentTimeLabel = formatCurrentTimeLabel(today);
+    const todayInWeek = weekDates.some((date) => isSameDay(date, today));
+    const showCurrentTimeLine = todayInWeek && currentHour >= startHour && currentHour <= END_HOUR;
+    const currentTimeOffsetPercent = ((currentHour + currentMinute / 60 - startHour) / timeSlots.length) * 100;
 
     const isToday = (date: Date) => {
         return (
@@ -149,12 +169,24 @@ export default function CalendarWeekView() {
             {/* Time Grid - Fills all available space */}
             <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(120,113,108,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-stone-500/30 hover:[&::-webkit-scrollbar-thumb]:bg-stone-500/45">
                 <div
-                    className="grid h-full gap-1"
+                    className="relative grid h-full gap-1"
                     style={{
                         minHeight: "max-content",
                         gridTemplateColumns: "auto repeat(7, minmax(0, 1fr))",
                     }}
                 >
+                    {showCurrentTimeLine ? (
+                        <div
+                            className="pointer-events-none absolute left-0 right-0 z-30"
+                            style={{ top: `${currentTimeOffsetPercent}%` }}
+                        >
+                            <div className="absolute left-0 -translate-y-1/2 rounded-sm bg-rose-600 px-1 py-0.5 text-[9px] font-semibold leading-none text-white">
+                                {currentTimeLabel}
+                            </div>
+                            <div className="border-t border-rose-500/85" />
+                        </div>
+                    ) : null}
+
                     {/* Time labels column */}
                     <div
                         className="grid"
