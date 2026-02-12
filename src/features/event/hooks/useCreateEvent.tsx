@@ -25,14 +25,7 @@ export function useCreateEvent() {
                 throw new Error("No event ID found");
             }
 
-            return await eventRepository.createEvent({
-                id: "",
-                event_data: {
-                    description,
-                },
-                template_id: 1,
-                workspaces_id: 1,
-            });
+            return await eventRepository.createEvent();
         },
         onSuccess: async (event) => {
             const userId = session?.user.id || userProfile?.id;

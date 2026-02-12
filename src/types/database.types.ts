@@ -11,22 +11,28 @@ export type Database = {
     Tables: {
       events: {
         Row: {
-          event_data: Json | null
+          data: Json
+          date: string
           id: number
-          template_id: number | null
-          workspace_id: number | null
+          template_id: number
+          title: string
+          workspace_id: number
         }
         Insert: {
-          event_data?: Json | null
+          data: Json
+          date: string
           id?: number
-          template_id?: number | null
-          workspace_id?: number | null
+          template_id: number
+          title: string
+          workspace_id: number
         }
         Update: {
-          event_data?: Json | null
+          data?: Json
+          date?: string
           id?: number
-          template_id?: number | null
-          workspace_id?: number | null
+          template_id?: number
+          title?: string
+          workspace_id?: number
         }
         Relationships: [
           {
@@ -48,19 +54,19 @@ export type Database = {
       templates: {
         Row: {
           created_at: string
-          event_schema: Json | null
+          data: Json
           id: number
           user_id: string
         }
         Insert: {
           created_at?: string
-          event_schema?: Json | null
+          data: Json
           id?: number
-          user_id?: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          event_schema?: Json | null
+          data?: Json
           id?: number
           user_id?: string
         }
