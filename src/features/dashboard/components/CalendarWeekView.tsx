@@ -69,6 +69,10 @@ export default function CalendarWeekView() {
         () => Array.from({ length: END_HOUR - startHour + 1 }, (_, i) => startHour + i),
         [startHour]
     );
+    const rowTemplate = useMemo(
+        () => `repeat(${timeSlots.length}, minmax(3rem, 1fr))`,
+        [timeSlots.length]
+    );
 
     const eventsByDayAndHour = useMemo(() => {
         const grouped = new Map<string, Map<number, Event[]>>();
@@ -111,8 +115,11 @@ export default function CalendarWeekView() {
     return (
         <div className="flex flex-col h-full overflow-hidden px-3 pb-3" style={{ backgroundColor: "#e7e2d4" }}>
             {/* Days Header */}
-            <div className="grid grid-cols-8 shrink-0 gap-1.5 px-1 py-2">
-                <div className="w-14" /> {/* Time column spacer */}
+            <div
+                className="grid shrink-0 gap-1 px-1 py-2"
+                style={{ gridTemplateColumns: "auto repeat(7, minmax(0, 1fr))" }}
+            >
+                <div className="w-8" /> {/* Time column spacer */}
                 {weekDates.map((date, idx) => (
                     <div
                         key={idx}
@@ -140,14 +147,23 @@ export default function CalendarWeekView() {
             </div>
 
             {/* Time Grid - Fills all available space */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-8 h-full gap-1.5" style={{ minHeight: "max-content" }}>
+            <div className="flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgba(120,113,108,0.35)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-stone-500/30 hover:[&::-webkit-scrollbar-thumb]:bg-stone-500/45">
+                <div
+                    className="grid h-full gap-1"
+                    style={{
+                        minHeight: "max-content",
+                        gridTemplateColumns: "auto repeat(7, minmax(0, 1fr))",
+                    }}
+                >
                     {/* Time labels column */}
-                    <div className="w-14">
+                    <div
+                        className="grid"
+                        style={{ gridTemplateRows: rowTemplate }}
+                    >
                         {timeSlots.map((hour) => (
                             <div
                                 key={hour}
-                                className="h-14 py-1 px-1 text-[10px] text-stone-500 text-right"
+                                className="py-1 pr-0.5 text-[10px] text-stone-500 text-right"
                             >
                                 {formatHourLabel(hour)}
                             </div>
@@ -156,14 +172,18 @@ export default function CalendarWeekView() {
 
                     {/* Day columns */}
                     {weekDates.map((date, dayIdx) => (
-                        <div key={dayIdx} className="rounded-2xl overflow-hidden">
+                        <div
+                            key={dayIdx}
+                            className="rounded-2xl overflow-hidden grid"
+                            style={{ gridTemplateRows: rowTemplate }}
+                        >
                             {timeSlots.map((hour) => {
                                 const slotEvents = getSlotEvents(date, hour);
 
                                 return (
                                     <div
                                         key={`${dayIdx}-${hour}`}
-                                        className="h-14 border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
+                                        className="border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
                                         style={{
                                             backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
                                         }}
