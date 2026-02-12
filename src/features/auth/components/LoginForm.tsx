@@ -30,7 +30,7 @@ export default function LoginForm() {
             console.error(error);
         }
     };
-    return <Card className="w-full max-w-sm mx-auto border-none shadow-none">
+    return <Card className="w-full max-w-sm mx-auto border-none shadow-none" style={{ background: "#f0ead6" }}>
         <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>
@@ -50,6 +50,7 @@ export default function LoginForm() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        style={{ background: "rgba(180, 180, 180, 0.5)" }}
                     />
                 </div>
 
@@ -62,6 +63,7 @@ export default function LoginForm() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        style={{ background: "rgba(180, 180, 180, 0.5)" }}
                     />
                 </div>
             </CardContent>
