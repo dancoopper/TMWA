@@ -5,6 +5,7 @@ export default function LoginPage() {
         className="
             w-full h-screen
             flex flex-row justify-center items-center"
+        style={{ background: "#f0ead6" }}
     >
         <LoginForm />
     </div>
