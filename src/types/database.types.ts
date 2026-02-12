@@ -11,24 +11,24 @@ export type Database = {
     Tables: {
       events: {
         Row: {
+          data: Json
           date: string
-          event_data: Json
           id: number
           template_id: number
           title: string
           workspace_id: number
         }
         Insert: {
+          data: Json
           date: string
-          event_data: Json
           id?: number
           template_id: number
           title: string
           workspace_id: number
         }
         Update: {
+          data?: Json
           date?: string
-          event_data?: Json
           id?: number
           template_id?: number
           title?: string
