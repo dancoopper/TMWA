@@ -1,4 +1,7 @@
+import { useEvents } from "@/features/event/hooks/useEvents";
+import type { Event } from "@/features/event/models/Event";
 import { useDashboardStore } from "@/stores/dashboardStore";
+import { useMemo } from "react";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TIME_SLOTS = [
@@ -20,10 +23,68 @@ function getWeekDates(date: Date) {
     });
 }
 
+function toDayKey(date: Date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function getEventDataPreview(data: Event["data"]) {
+    if (!Array.isArray(data)) return "No details";
+    if (data.length === 0) return "No details";
+
+    const firstItem = data[0];
+    if (firstItem && typeof firstItem === "object" && !Array.isArray(firstItem)) {
+        const entries = Object.entries(firstItem as Record<string, unknown>);
+        if (entries.length > 0) {
+            const [key, value] = entries[0];
+            return `${key}: ${String(value)}`;
+        }
+    }
+
+    return `${data.length} item${data.length > 1 ? "s" : ""}`;
+}
+
 export default function CalendarWeekView() {
     const { selectedDate, setSelectedDate } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
+    const weekStart = new Date(weekDates[0]);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekDates[6]);
+    weekEnd.setHours(23, 59, 59, 999);
     const today = new Date();
+    const { data: events = [] } = useEvents({ startDate: weekStart, endDate: weekEnd });
+    const eventsByDayAndHour = useMemo(() => {
+        const grouped = new Map<string, Map<number, Event[]>>();
+
+        for (const event of events) {
+            const dayKey = toDayKey(event.date);
+            const hour = event.date.getHours();
+            const dayMap = grouped.get(dayKey) ?? new Map<number, Event[]>();
+            const hourEvents = dayMap.get(hour) ?? [];
+            hourEvents.push(event);
+            dayMap.set(hour, hourEvents);
+            grouped.set(dayKey, dayMap);
+        }
+
+        return grouped;
+    }, [events]);
+
+    const getSlotEvents = (date: Date, timeSlot: string) => {
+        const dayMap = eventsByDayAndHour.get(toDayKey(date));
+        if (!dayMap) return [];
+
+        const parsedHour = Number.parseInt(timeSlot, 10);
+        const isPm = timeSlot.endsWith("PM");
+        const isAm = timeSlot.endsWith("AM");
+        if (!isPm && !isAm) return [];
+
+        let hour24 = parsedHour % 12;
+        if (isPm) hour24 += 12;
+
+        return dayMap.get(hour24) ?? [];
+    };
 
     const isToday = (date: Date) => {
         return (
@@ -90,15 +151,39 @@ export default function CalendarWeekView() {
                     {/* Day columns */}
                     {weekDates.map((date, dayIdx) => (
                         <div key={dayIdx} className="rounded-2xl overflow-hidden">
-                            {TIME_SLOTS.map((time) => (
-                                <div
-                                    key={`${dayIdx}-${time}`}
-                                    className="h-14 border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer"
-                                    style={{
-                                        backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
-                                    }}
-                                />
-                            ))}
+                            {TIME_SLOTS.map((time) => {
+                                const slotEvents = getSlotEvents(date, time);
+
+                                return (
+                                    <div
+                                        key={`${dayIdx}-${time}`}
+                                        className="h-14 border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
+                                        style={{
+                                            backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
+                                        }}
+                                    >
+                                        {slotEvents.slice(0, 1).map((event) => (
+                                            <div
+                                                key={event.id}
+                                                className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1"
+                                                title={event.title}
+                                            >
+                                                <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">
+                                                    {event.title}
+                                                </p>
+                                                <p className="text-[9px] leading-tight truncate text-stone-600">
+                                                    {getEventDataPreview(event.data)}
+                                                </p>
+                                            </div>
+                                        ))}
+                                        {slotEvents.length > 1 ? (
+                                            <p className="text-[10px] leading-tight text-stone-500">
+                                                +{slotEvents.length - 1}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                );
+                            })}
                         </div>
                     ))}
                 </div>
