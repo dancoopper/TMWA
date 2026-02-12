@@ -13,7 +13,7 @@ export default function DashboardPage() {
     return (
         <div
             className="flex h-screen w-full overflow-hidden"
-            style={{ backgroundColor: "#e8e4d9" }}
+            style={{ backgroundColor: "#e7e2d4" }}
         >
             {/* Left Sidebar */}
             <Sidebar />

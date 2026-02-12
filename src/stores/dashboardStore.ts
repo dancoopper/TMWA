@@ -18,8 +18,8 @@ type DashboardState = {
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
-    leftSidebarCollapsed: false,
-    rightPanelCollapsed: false,
+    leftSidebarCollapsed: true,
+    rightPanelCollapsed: true,
     calendarView: "month",
     selectedDate: new Date(),
     searchQuery: "",

@@ -6,6 +6,7 @@ import {
     PanelLeftClose,
     Plus,
     Settings,
+    UserCircle2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/config/routes";
@@ -26,14 +27,14 @@ export default function Sidebar() {
     return (
         <aside
             className={`
-                flex flex-col h-full border-r border-stone-400/50 
+                flex flex-col h-full border-r border-stone-400/40
                 transition-all duration-500 ease-out
-                ${leftSidebarCollapsed ? "w-16" : "w-56"}
+                ${leftSidebarCollapsed ? "w-12" : "w-56"}
             `}
-            style={{ backgroundColor: "#d8d4c8" }}
+            style={{ backgroundColor: "#dfdacb" }}
         >
             {/* Logo & Toggle */}
-            <div className="flex items-center justify-between p-4 border-b border-stone-400/50">
+            <div className="flex items-center justify-between p-3 border-b border-stone-400/40">
                 {!leftSidebarCollapsed
                     ? (
                         <span className="font-bold text-base text-stone-700">
@@ -41,8 +42,10 @@ export default function Sidebar() {
                         </span>
                     )
                     : (
-                        <span className="font-bold text-xs text-stone-600 mx-auto">
+                        <span className="font-bold text-[9px] leading-3 text-stone-600 mx-auto text-center">
                             TM
+                            <br />
+                            WA
                         </span>
                     )}
 
@@ -126,19 +129,28 @@ export default function Sidebar() {
             </div>
 
             {/* Settings Button */}
-            <div className="p-2 border-t border-stone-400/50">
-                <button
-                    onClick={() => navigate(ROUTES.SETTINGS)}
-                    className={`
-                        w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
-                        text-stone-500 hover:text-stone-700 hover:bg-stone-300/50
-                        transition-all duration-200 text-xs
-                        ${leftSidebarCollapsed ? "justify-center" : ""}
-                    `}
-                >
-                    <Settings className="w-3.5 h-3.5 shrink-0" />
-                    {!leftSidebarCollapsed && <span>Settings</span>}
-                </button>
+            <div className="p-2 border-t border-stone-400/40">
+                {leftSidebarCollapsed ? (
+                    <button
+                        onClick={() => navigate(ROUTES.SETTINGS)}
+                        className="w-full flex justify-center text-stone-500 hover:text-stone-700 transition-colors duration-200"
+                    >
+                        <UserCircle2 className="w-5 h-5 shrink-0" />
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => navigate(ROUTES.SETTINGS)}
+                        className={`
+                            w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
+                            text-stone-500 hover:text-stone-700 hover:bg-stone-300/50
+                            transition-all duration-200 text-xs
+                            ${leftSidebarCollapsed ? "justify-center" : ""}
+                        `}
+                    >
+                        <Settings className="w-3.5 h-3.5 shrink-0" />
+                        {!leftSidebarCollapsed && <span>Settings</span>}
+                    </button>
+                )}
             </div>
         </aside>
     );
