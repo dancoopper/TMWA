@@ -4,11 +4,8 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo } from "react";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const TIME_SLOTS = [
-    "5AM", "6AM", "7AM", "8AM", "9AM", "10AM", "11AM",
-    "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
-    "6PM", "7PM", "8PM", "9PM", "10PM", "11PM",
-];
+const DEFAULT_START_HOUR = 5;
+const END_HOUR = 23;
 
 function getWeekDates(date: Date) {
     const day = date.getDay();
@@ -46,6 +43,12 @@ function getEventDataPreview(data: Event["data"]) {
     return `${data.length} item${data.length > 1 ? "s" : ""}`;
 }
 
+function formatHourLabel(hour24: number) {
+    const suffix = hour24 >= 12 ? "PM" : "AM";
+    const hour12 = hour24 % 12 || 12;
+    return `${hour12}${suffix}`;
+}
+
 export default function CalendarWeekView() {
     const { selectedDate, setSelectedDate } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
@@ -55,6 +58,18 @@ export default function CalendarWeekView() {
     weekEnd.setHours(23, 59, 59, 999);
     const today = new Date();
     const { data: events = [] } = useEvents({ startDate: weekStart, endDate: weekEnd });
+    const startHour = useMemo(() => {
+        if (events.length === 0) return DEFAULT_START_HOUR;
+
+        const earliestHour = Math.min(...events.map((event) => event.date.getHours()));
+        return earliestHour < DEFAULT_START_HOUR ? earliestHour : DEFAULT_START_HOUR;
+    }, [events]);
+
+    const timeSlots = useMemo(
+        () => Array.from({ length: END_HOUR - startHour + 1 }, (_, i) => startHour + i),
+        [startHour]
+    );
+
     const eventsByDayAndHour = useMemo(() => {
         const grouped = new Map<string, Map<number, Event[]>>();
 
@@ -71,19 +86,10 @@ export default function CalendarWeekView() {
         return grouped;
     }, [events]);
 
-    const getSlotEvents = (date: Date, timeSlot: string) => {
+    const getSlotEvents = (date: Date, hour: number) => {
         const dayMap = eventsByDayAndHour.get(toDayKey(date));
         if (!dayMap) return [];
-
-        const parsedHour = Number.parseInt(timeSlot, 10);
-        const isPm = timeSlot.endsWith("PM");
-        const isAm = timeSlot.endsWith("AM");
-        if (!isPm && !isAm) return [];
-
-        let hour24 = parsedHour % 12;
-        if (isPm) hour24 += 12;
-
-        return dayMap.get(hour24) ?? [];
+        return dayMap.get(hour) ?? [];
     };
 
     const isToday = (date: Date) => {
@@ -138,12 +144,12 @@ export default function CalendarWeekView() {
                 <div className="grid grid-cols-8 h-full gap-1.5" style={{ minHeight: "max-content" }}>
                     {/* Time labels column */}
                     <div className="w-14">
-                        {TIME_SLOTS.map((time) => (
+                        {timeSlots.map((hour) => (
                             <div
-                                key={time}
+                                key={hour}
                                 className="h-14 py-1 px-1 text-[10px] text-stone-500 text-right"
                             >
-                                {time}
+                                {formatHourLabel(hour)}
                             </div>
                         ))}
                     </div>
@@ -151,12 +157,12 @@ export default function CalendarWeekView() {
                     {/* Day columns */}
                     {weekDates.map((date, dayIdx) => (
                         <div key={dayIdx} className="rounded-2xl overflow-hidden">
-                            {TIME_SLOTS.map((time) => {
-                                const slotEvents = getSlotEvents(date, time);
+                            {timeSlots.map((hour) => {
+                                const slotEvents = getSlotEvents(date, hour);
 
                                 return (
                                     <div
-                                        key={`${dayIdx}-${time}`}
+                                        key={`${dayIdx}-${hour}`}
                                         className="h-14 border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
                                         style={{
                                             backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
