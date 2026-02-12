@@ -227,7 +227,7 @@ export default function CalendarWeekView() {
                                                     e.stopPropagation();
                                                     selectEvent(event);
                                                 }}
-                                                className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1 cursor-pointer"
+                                                className="rounded-sm border border-stone-500/20 bg-stone-200/55 px-1.5 py-1 cursor-pointer transition-all duration-150 hover:bg-stone-300/80 hover:border-stone-600/45 hover:shadow-[inset_0_0_0_1px_rgba(87,83,78,0.35)] hover:-translate-y-px"
                                                 title={event.title}
                                             >
                                                 <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">

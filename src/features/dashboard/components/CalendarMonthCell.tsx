@@ -62,12 +62,14 @@ export default function CalendarMonthCell({
                                 onEventClick?.(event.id);
                             }}
                             className={`
-                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer
+                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-0.5 py-0.5 transition-all duration-150
                                 ${isCurrent
-                                    ? (isToday ? "text-stone-200/90" : "text-stone-700")
+                                    ? (isToday
+                                        ? "text-stone-200/90 hover:bg-stone-100/20 hover:text-stone-100 hover:translate-x-px"
+                                        : "text-stone-700 hover:bg-stone-300/80 hover:text-stone-900 hover:translate-x-px")
                                     : (variant === "next"
-                                        ? "text-stone-500/80"
-                                        : "text-stone-500")}
+                                        ? "text-stone-500/80 hover:bg-stone-300/65 hover:text-stone-700 hover:translate-x-px"
+                                        : "text-stone-500 hover:bg-stone-300/65 hover:text-stone-700 hover:translate-x-px")}
                             `}
                             title={event.title}
                         >
