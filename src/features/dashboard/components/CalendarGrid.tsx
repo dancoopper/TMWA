@@ -1,4 +1,7 @@
+import { useEvents } from "@/features/event/hooks/useEvents";
 import { useDashboardStore } from "@/stores/dashboardStore";
+import { useMemo } from "react";
+import CalendarMonthCell from "./CalendarMonthCell";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -8,6 +11,13 @@ function getDaysInMonth(year: number, month: number) {
 
 function getFirstDayOfMonth(year: number, month: number) {
     return new Date(year, month, 1).getDay();
+}
+
+function toDayKey(date: Date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 export default function CalendarGrid() {
@@ -34,6 +44,23 @@ export default function CalendarGrid() {
     const totalCells = 42; // 6 rows * 7 days
     const nextMonthDays = totalCells - prevMonthDays.length - currentMonthDays.length;
     const nextMonthDaysArray = Array.from({ length: nextMonthDays }, (_, i) => i + 1);
+    const gridStartDate = new Date(year, month, 1 - firstDayOfMonth);
+    const gridEndDate = new Date(year, month, daysInMonth + nextMonthDays);
+    const { data: events = [] } = useEvents({ startDate: gridStartDate, endDate: gridEndDate });
+    const eventsByDay = useMemo(() => {
+        const grouped = new Map<string, string[]>();
+
+        for (const event of events) {
+            const dayKey = toDayKey(event.date);
+            const dayEvents = grouped.get(dayKey) ?? [];
+            dayEvents.push(event.title);
+            grouped.set(dayKey, dayEvents);
+        }
+
+        return grouped;
+    }, [events]);
+
+    const getDayEventTitles = (date: Date) => eventsByDay.get(toDayKey(date)) ?? [];
 
     const isSelected = (day: number) => {
         return (
@@ -77,12 +104,12 @@ export default function CalendarGrid() {
             {/* Calendar Grid */}
             <div className="flex-1 grid grid-cols-7 grid-rows-6 gap-1.5 min-h-0">
                 {prevMonthDays.map((day) => (
-                    <div
+                    <CalendarMonthCell
                         key={`prev-${day}`}
-                        className="rounded-2xl p-2.5 flex flex-col text-stone-300/20"
-                    >
-                        <span className="text-xs text-stone-600">{day}</span>
-                    </div>
+                        day={day}
+                        variant="previous"
+                        eventTitles={getDayEventTitles(new Date(year, month - 1, day))}
+                    />
                 ))}
 
                 {currentMonthDays.map((day) => {
@@ -90,38 +117,25 @@ export default function CalendarGrid() {
                     const todayCell = isToday(day);
 
                     return (
-                        <div
+                        <CalendarMonthCell
                             key={`current-${day}`}
+                            day={day}
+                            variant="current"
+                            isSelected={selected}
+                            isToday={todayCell}
+                            eventTitles={getDayEventTitles(new Date(year, month, day))}
                             onClick={() => handleDayClick(day, true)}
-                            className={`
-                                rounded-2xl p-2.5 cursor-pointer flex flex-col transition-all duration-200 hover:brightness-95
-                                ${selected ? "ring-2 ring-inset ring-sky-400/60" : ""}
-                            `}
-                            style={{
-                                backgroundColor: todayCell ? "#1f2128" : "#dad6c8",
-                            }}
-                        >
-                            <span
-                                className={`
-                                    text-xs font-semibold
-                                    ${todayCell ? "text-stone-100" : selected ? "text-stone-800" : "text-stone-500"}
-                                `}
-                            >
-                                {day}
-                            </span>
-                            <div className="flex-1" />
-                        </div>
+                        />
                     );
                 })}
 
                 {nextMonthDaysArray.map((day) => (
-                    <div
+                    <CalendarMonthCell
                         key={`next-${day}`}
-                        className="rounded-2xl p-2.5 flex flex-col"
-                        style={{ backgroundColor: "#e2ded1" }}
-                    >
-                        <span className="text-xs text-stone-400/80">{day}</span>
-                    </div>
+                        day={day}
+                        variant="next"
+                        eventTitles={getDayEventTitles(new Date(year, month + 1, day))}
+                    />
                 ))}
             </div>
         </div>
