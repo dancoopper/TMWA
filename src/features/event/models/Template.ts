@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const TemplateSchema = z.object({
     id: z.number(),
-    createdAt: z.string().default(""),
-    userId: z.uuid().default(""),
-    data: z.json().default({}),
+    createdAt: z.string(),
+    userId: z.uuid(),
+    data: z.json(),
 });
 
 export type Template = z.infer<typeof TemplateSchema>;

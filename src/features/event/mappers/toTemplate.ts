@@ -1,12 +1,12 @@
 import { type Database } from '@/types/database.types';
-import { type Template, TemplateSchema } from './Template';
+import { type Template, TemplateSchema } from '@/features/event/models/Template';
 
 type TemplateRow = Database['public']['Tables']['templates']['Row'];
 
 export function toTemplate(row: TemplateRow): Template {
     const mappedData = {
         id: row.id,
-        createdAt: new Date(row.created_at),
+        createdAt: row.created_at,
         data: row.data,
         userId: row.user_id,
     };

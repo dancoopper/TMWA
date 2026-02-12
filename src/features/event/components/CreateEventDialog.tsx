@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateEvent } from "../hooks/useCreateEvent";
+import { useCreateTemplate } from "../hooks/useCreateTemplate";
+import { useAuthStore } from "@/stores/authStore";
 import {
     Dialog,
     DialogContent,
@@ -15,7 +17,7 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { date } from "zod";
+import { useGetTemplateById } from "../hooks/useGetTemplateById";
 
 interface CreateEventDialogProps {
     trigger: React.ReactNode;
@@ -33,19 +35,63 @@ export default function CreateEventDialog({
 
     const { mutate: createEvent, isPending } = useCreateEvent();
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+    const { mutateAsync: createTemplate } = useCreateTemplate();
+    const { session, userProfile } = useAuthStore();
+    const { data: templateData, isLoading: isTemplateLoading } = useGetTemplateById(1);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // if (!selectedWorkspaceId) {
-        //     toast.error("Please select a workspace first");
-        //     return;
-        // }
+        // TODO: Add workspace selection
+        if (!selectedWorkspaceId) {
+            toast.error("Please select a workspace first");
+            return;
+        }
+
+        if (!session?.user.id) throw new Error("No active session");
+        const userId = session?.user.id;
+
+        // If template doesn't exist (and we're not currently loading it), try to create it
+        if (!templateData && !isTemplateLoading) {
+            try {
+                await createTemplate({
+                    createdAt: date.toISOString(),
+                    userId,
+                    data: [
+                        {
+                            id: 1,
+                            name: "Title",
+                            type: "text",
+                        },
+                        {
+                            id: 2,
+                            name: "Description",
+                            type: "text",
+                        },
+                        {
+                            id: 3,
+                            name: "Date",
+                            type: "date",
+                        },
+                    ],
+                });
+            } catch (error) {
+                console.error("Failed to create default template", error);
+                // Continue anyway, maybe createEvent will work or fail with a clear error
+            }
+        }
 
         createEvent({
             title,
-            data: { description },
+            data: [
+                {
+                    id: 1,
+                    value: description,
+                }
+            ],
             templateId: 1, // Start with a default template ID
-            workspaceId: 1,
+            workspaceId: selectedWorkspaceId,
             date,
         }, {
             onSuccess: () => {

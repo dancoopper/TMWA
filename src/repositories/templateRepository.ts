@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { type Template } from "@/features/template/Template";
-import { toTemplate } from "@/features/template/toTemplate";
+import { type Template } from "@/features/event/models/Template";
+import { toTemplate } from "@/features/event/mappers/toTemplate";
 
 export const templateRepository = {
     async getTemplateById(id: number) {
@@ -14,10 +14,13 @@ export const templateRepository = {
         return toTemplate(data);
     },
 
-    async createTemplate(template: Template) {
+    async createTemplate(template: Omit<Template, "id">) {
         const { data, error } = await supabase
             .from("templates")
-            .insert([template])
+            .insert({
+                user_id: template.userId,
+                data: template.data,
+            })
             .select()
             .single();
 
@@ -25,10 +28,13 @@ export const templateRepository = {
         return toTemplate(data);
     },
 
-    async updateTemplate(id: string, template: Template) {
+    async updateTemplate(id: string, template: Omit<Template, "id">) {
         const { data, error } = await supabase
             .from("templates")
-            .update(template)
+            .update({
+                user_id: template.userId,
+                data: template.data,
+            })
             .eq("id", id)
             .select()
             .single();

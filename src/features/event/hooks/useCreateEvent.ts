@@ -3,11 +3,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { type Event } from "@/features/event/models/Event";
 
+
 export function useCreateEvent() {
     const queryClient = useQueryClient();
 
+
+
     return useMutation({
         mutationFn: async (event: Omit<Event, "id">) => {
+
             return await eventRepository.createEvent(event);
         },
         onSuccess: async (event) => {
