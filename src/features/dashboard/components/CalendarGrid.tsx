@@ -1,4 +1,5 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
+import type { Event } from "@/features/event/models/Event";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo } from "react";
 import CalendarMonthCell from "./CalendarMonthCell";
@@ -21,7 +22,7 @@ function toDayKey(date: Date) {
 }
 
 export default function CalendarGrid() {
-    const { selectedDate, setSelectedDate } = useDashboardStore();
+    const { selectedDate, setSelectedDate, selectEvent } = useDashboardStore();
 
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -48,19 +49,19 @@ export default function CalendarGrid() {
     const gridEndDate = new Date(year, month, daysInMonth + nextMonthDays);
     const { data: events = [] } = useEvents({ startDate: gridStartDate, endDate: gridEndDate });
     const eventsByDay = useMemo(() => {
-        const grouped = new Map<string, string[]>();
+        const grouped = new Map<string, Event[]>();
 
         for (const event of events) {
             const dayKey = toDayKey(event.date);
             const dayEvents = grouped.get(dayKey) ?? [];
-            dayEvents.push(event.title);
+            dayEvents.push(event);
             grouped.set(dayKey, dayEvents);
         }
 
         return grouped;
     }, [events]);
 
-    const getDayEventTitles = (date: Date) => eventsByDay.get(toDayKey(date)) ?? [];
+    const getDayEvents = (date: Date) => eventsByDay.get(toDayKey(date)) ?? [];
 
     const isSelected = (day: number) => {
         return (
@@ -108,7 +109,13 @@ export default function CalendarGrid() {
                         key={`prev-${day}`}
                         day={day}
                         variant="previous"
-                        eventTitles={getDayEventTitles(new Date(year, month - 1, day))}
+                            eventItems={getDayEvents(new Date(year, month - 1, day))}
+                            onEventClick={(eventId) => {
+                                const event = getDayEvents(new Date(year, month - 1, day)).find(
+                                    (dayEvent) => dayEvent.id === eventId
+                                );
+                                if (event) selectEvent(event);
+                            }}
                     />
                 ))}
 
@@ -123,8 +130,14 @@ export default function CalendarGrid() {
                             variant="current"
                             isSelected={selected}
                             isToday={todayCell}
-                            eventTitles={getDayEventTitles(new Date(year, month, day))}
+                            eventItems={getDayEvents(new Date(year, month, day))}
                             onClick={() => handleDayClick(day, true)}
+                            onEventClick={(eventId) => {
+                                const event = getDayEvents(new Date(year, month, day)).find(
+                                    (dayEvent) => dayEvent.id === eventId
+                                );
+                                if (event) selectEvent(event);
+                            }}
                         />
                     );
                 })}
@@ -134,7 +147,13 @@ export default function CalendarGrid() {
                         key={`next-${day}`}
                         day={day}
                         variant="next"
-                        eventTitles={getDayEventTitles(new Date(year, month + 1, day))}
+                            eventItems={getDayEvents(new Date(year, month + 1, day))}
+                            onEventClick={(eventId) => {
+                                const event = getDayEvents(new Date(year, month + 1, day)).find(
+                                    (dayEvent) => dayEvent.id === eventId
+                                );
+                                if (event) selectEvent(event);
+                            }}
                     />
                 ))}
             </div>

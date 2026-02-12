@@ -2,7 +2,7 @@ import { useEvents } from "@/features/event/hooks/useEvents";
 import type { Event } from "@/features/event/models/Event";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo } from "react";
-import { PanelRightClose, PanelRight } from "lucide-react";
+import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
 
 const TIME_SLOTS = [
     "12AM", "1AM", "2AM", "3AM", "4AM", "5AM",
@@ -53,7 +53,14 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function DayDetailPanel() {
-    const { rightPanelCollapsed, toggleRightPanel, selectedDate } = useDashboardStore();
+    const {
+        rightPanelCollapsed,
+        toggleRightPanel,
+        selectedDate,
+        selectedEvent,
+        selectEvent,
+        clearSelectedEvent,
+    } = useDashboardStore();
     const today = new Date();
     const dayStart = new Date(selectedDate);
     dayStart.setHours(0, 0, 0, 0);
@@ -91,6 +98,13 @@ export default function DayDetailPanel() {
             year: "numeric",
         });
     };
+    const formatSelectedEventDate = (date: Date) =>
+        date.toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+        });
 
     return (
         <aside
@@ -130,6 +144,50 @@ export default function DayDetailPanel() {
                 )}
             </div>
 
+            {!rightPanelCollapsed && selectedEvent ? (
+                <div className="p-2 border-b border-stone-400/40 shrink-0">
+                    <div className="rounded-lg border border-stone-400/40 bg-stone-100/70 p-2">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold text-stone-800 truncate" title={selectedEvent.title}>
+                                    {selectedEvent.title}
+                                </p>
+                                <p className="text-[11px] text-stone-600">
+                                    {formatSelectedEventDate(selectedEvent.date)}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                    aria-label="Edit event"
+                                    title="Edit event"
+                                >
+                                    <PenLine className="w-3.5 h-3.5 text-stone-600" />
+                                </button>
+                                <button
+                                    type="button"
+                                    className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                    aria-label="Delete event"
+                                    title="Delete event"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5 text-stone-600" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={clearSelectedEvent}
+                                    className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                    aria-label="Close selected event details"
+                                    title="Close"
+                                >
+                                    <X className="w-3.5 h-3.5 text-stone-600" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
             {/* Time Slots - Only show when expanded */}
             {!rightPanelCollapsed && (
                 <div className="flex-1 overflow-y-auto">
@@ -160,9 +218,11 @@ export default function DayDetailPanel() {
                                 </div>
                                 <div className="relative flex-1 border-l border-stone-300/60 px-2 py-1.5 cursor-pointer">
                                     {slotEvents.slice(0, 2).map((event) => (
-                                        <div
+                                        <button
                                             key={event.id}
-                                            className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1 mb-1 last:mb-0"
+                                            type="button"
+                                            onClick={() => selectEvent(event)}
+                                            className="w-full text-left rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1 mb-1 last:mb-0"
                                             title={event.title}
                                         >
                                             <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">
@@ -171,7 +231,7 @@ export default function DayDetailPanel() {
                                             <p className="text-[9px] leading-tight truncate text-stone-600">
                                                 {getEventDataPreview(event.data)}
                                             </p>
-                                        </div>
+                                        </button>
                                     ))}
                                     {slotEvents.length > 2 ? (
                                         <p className="text-[10px] leading-tight text-stone-500">

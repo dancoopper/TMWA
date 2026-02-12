@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { Event } from "@/features/event/models/Event";
 
 type CalendarView = "month" | "week";
 
@@ -7,12 +8,15 @@ type DashboardState = {
     rightPanelCollapsed: boolean;
     calendarView: CalendarView;
     selectedDate: Date;
+    selectedEvent: Event | null;
     searchQuery: string;
     selectedWorkspaceId: number | null;
     toggleLeftSidebar: () => void;
     toggleRightPanel: () => void;
     setCalendarView: (view: CalendarView) => void;
     setSelectedDate: (date: Date) => void;
+    selectEvent: (event: Event) => void;
+    clearSelectedEvent: () => void;
     setSearchQuery: (query: string) => void;
     setSelectedWorkspaceId: (workspaceId: number | null) => void;
 };
@@ -22,6 +26,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     rightPanelCollapsed: true,
     calendarView: "month",
     selectedDate: new Date(),
+    selectedEvent: null,
     searchQuery: "",
     selectedWorkspaceId: null,
 
@@ -34,6 +39,15 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     setCalendarView: (view) => set({ calendarView: view }),
 
     setSelectedDate: (date) => set({ selectedDate: date }),
+
+    selectEvent: (event) =>
+        set({
+            selectedEvent: event,
+            selectedDate: event.date,
+            rightPanelCollapsed: false,
+        }),
+
+    clearSelectedEvent: () => set({ selectedEvent: null }),
 
     setSearchQuery: (query) => set({ searchQuery: query }),
 

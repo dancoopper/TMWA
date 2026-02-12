@@ -64,7 +64,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function CalendarWeekView() {
-    const { selectedDate, setSelectedDate } = useDashboardStore();
+    const { selectedDate, setSelectedDate, selectEvent } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
     const weekStart = new Date(weekDates[0]);
     weekStart.setHours(0, 0, 0, 0);
@@ -221,8 +221,13 @@ export default function CalendarWeekView() {
                                         }}
                                     >
                                         {slotEvents.slice(0, 1).map((event) => (
-                                            <div
+                                            <button
                                                 key={event.id}
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    selectEvent(event);
+                                                }}
                                                 className="rounded-md border border-stone-400/30 bg-stone-100/70 px-1.5 py-1"
                                                 title={event.title}
                                             >
@@ -232,7 +237,7 @@ export default function CalendarWeekView() {
                                                 <p className="text-[9px] leading-tight truncate text-stone-600">
                                                     {getEventDataPreview(event.data)}
                                                 </p>
-                                            </div>
+                                            </button>
                                         ))}
                                         {slotEvents.length > 1 ? (
                                             <p className="text-[10px] leading-tight text-stone-500">

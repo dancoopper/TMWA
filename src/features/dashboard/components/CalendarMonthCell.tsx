@@ -1,10 +1,16 @@
+type MonthCellEventItem = {
+    id: number;
+    title: string;
+};
+
 interface CalendarMonthCellProps {
     day: number;
     variant: "previous" | "current" | "next";
     isSelected?: boolean;
     isToday?: boolean;
-    eventTitles?: string[];
+    eventItems?: MonthCellEventItem[];
     onClick?: () => void;
+    onEventClick?: (eventId: number) => void;
 }
 
 export default function CalendarMonthCell({
@@ -12,12 +18,13 @@ export default function CalendarMonthCell({
     variant,
     isSelected = false,
     isToday = false,
-    eventTitles = [],
+    eventItems = [],
     onClick,
+    onEventClick,
 }: CalendarMonthCellProps) {
     const isCurrent = variant === "current";
-    const visibleEventTitles = eventTitles.slice(0, 2);
-    const remainingEventCount = eventTitles.length - visibleEventTitles.length;
+    const visibleEvents = eventItems.slice(0, 2);
+    const remainingEventCount = eventItems.length - visibleEvents.length;
 
     return (
         <div
@@ -45,24 +52,29 @@ export default function CalendarMonthCell({
             >
                 {day}
             </span>
-            {eventTitles.length > 0 ? (
+            {eventItems.length > 0 ? (
                 <div className="mt-1 space-y-1">
-                    {visibleEventTitles.map((title, index) => (
-                        <p
-                            key={`${title}-${index}`}
+                    {visibleEvents.map((event) => (
+                        <button
+                            key={event.id}
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEventClick?.(event.id);
+                            }}
                             className={`
-                                text-[10px] leading-tight truncate flex items-center gap-1
+                                w-full text-left text-[10px] leading-tight truncate flex items-center gap-1
                                 ${isCurrent
                                     ? (isToday ? "text-stone-200/90" : "text-stone-700")
                                     : (variant === "next"
                                         ? "text-stone-500/80"
                                         : "text-stone-500")}
                             `}
-                            title={title}
+                            title={event.title}
                         >
                             <span className="text-[9px] leading-none">•</span>
-                            <span className="truncate">{title}</span>
-                        </p>
+                            <span className="truncate">{event.title}</span>
+                        </button>
                     ))}
                     {remainingEventCount > 0 ? (
                         <span
