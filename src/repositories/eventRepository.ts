@@ -12,7 +12,7 @@ export const eventRepository = {
         return data.map(toEvent);
     },
 
-    async getEventsByRange(workspaceId: string, startDate: Date, endDate: Date) {
+    async getEventsByRange(workspaceId: number, startDate: Date, endDate: Date): Promise<Event[]> {
         const { data, error } = await supabase
             .from("events")
             .select("*")
