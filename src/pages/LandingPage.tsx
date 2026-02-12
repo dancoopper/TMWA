@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ROUTES } from "@/config/routes";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 /* ------------------------------------------------------------------ */
 /*  Landing Page — navbar + cream hero with laptop mockup              */
@@ -73,24 +74,23 @@ export default function LandingPage() {
                     text-decoration: none;
                     color: #2c2c2c;
                 }
-                .lp-nav-logo-icon {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 6px;
-                    background: #3c5a2e;
-                    color: #fff;
+                .lp-nav-logo-mark {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
+                    flex-direction: column;
+                    font-size: 18px;
+                    line-height: 0.9;
                     font-weight: 800;
-                    line-height: 1;
+                    letter-spacing: 0.5px;
+                    color: #116CE2;
+                }
+                .lp-nav-logo-mark span {
+                    display: block;
                 }
                 .lp-nav-logo-text {
                     font-size: 13px;
-                    font-weight: 600;
-                    line-height: 1.2;
-                    color: #2c2c2c;
+                    font-weight: 500;
+                    line-height: 1.15;
+                    color: #737269;
                 }
                 .lp-nav-links {
                     display: flex;
@@ -110,30 +110,6 @@ export default function LandingPage() {
                     align-items: center;
                     gap: 10px;
                 }
-                .lp-nav-login {
-                    padding: 8px 20px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #2c2c2c;
-                    text-decoration: none;
-                    transition: opacity .2s;
-                    background: #d5d5d5;
-                    border: none;
-                    border-radius: 8px;
-                }
-                .lp-nav-login:hover { opacity: .8; }
-                .lp-nav-signup {
-                    padding: 8px 20px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #fff;
-                    text-decoration: none;
-                    transition: opacity .2s;
-                    background: #2c2c2c;
-                    border: none;
-                    border-radius: 8px;
-                }
-                .lp-nav-signup:hover { opacity: .85; }
 
                 /* ---- Laptop frame ---- */
                 .laptop-frame {
@@ -168,7 +144,7 @@ export default function LandingPage() {
                     display: block;
                     aspect-ratio: 16 / 9.5;
                     object-fit: cover;
-                    object-position: top left;
+                    object-position: top right;
                 }
                 .laptop-base {
                     height: 18px;
@@ -195,36 +171,6 @@ export default function LandingPage() {
                     border-radius: 0 0 16px 16px;
                 }
 
-                /* ---- Hero buttons ---- */
-                .lp-login-btn {
-                    padding: 10px 24px;
-                    background: #d5d5d5;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 15px;
-                    font-weight: 500;
-                    color: #2c2c2c;
-                    cursor: pointer;
-                    font-family: inherit;
-                    transition: opacity .2s;
-                    text-decoration: none;
-                }
-                .lp-login-btn:hover { opacity: .8; }
-                .lp-cta-btn {
-                    padding: 12px 28px;
-                    background: #2c2c2c;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 15px;
-                    font-weight: 600;
-                    color: #fff;
-                    cursor: pointer;
-                    font-family: inherit;
-                    text-decoration: none;
-                    transition: opacity .2s;
-                }
-                .lp-cta-btn:hover { opacity: .85; }
-
                 @media (max-width: 768px) {
                     .lp-nav-links { display: none; }
                     .lp-navbar { padding: 10px 16px; }
@@ -240,8 +186,9 @@ export default function LandingPage() {
                 {/* ========== NAVBAR ========== */}
                 <nav className="lp-navbar">
                     <a href="/" className="lp-nav-logo">
-                        <div className="lp-nav-logo-icon">
-                            <span>TM<br />WA</span>
+                        <div className="lp-nav-logo-mark" aria-hidden="true">
+                            <span>TM</span>
+                            <span>WA</span>
                         </div>
                         <div className="lp-nav-logo-text">
                             Time Management<br />Web App
@@ -255,8 +202,18 @@ export default function LandingPage() {
                     </div>
 
                     <div className="lp-nav-auth">
-                        <Link to={ROUTES.LOGIN} className="lp-nav-login">Login</Link>
-                        <Link to={ROUTES.SIGNUP} className="lp-nav-signup">Sign Up</Link>
+                        <Button
+                            asChild
+                            className="h-9 rounded-xl bg-[#dfdcc8] px-5 text-sm font-semibold text-[#2c2c2c] hover:bg-[#d4d0bb]"
+                        >
+                            <Link to={ROUTES.LOGIN}>Login</Link>
+                        </Button>
+                        <Button
+                            asChild
+                            className="h-9 rounded-xl bg-[#1f2023] px-5 text-sm font-semibold text-white hover:bg-[#17181b]"
+                        >
+                            <Link to={ROUTES.SIGNUP}>Sign Up</Link>
+                        </Button>
                     </div>
                 </nav>
 
@@ -279,10 +236,10 @@ export default function LandingPage() {
 
                         {/* ========== LAPTOP MOCKUP ========== */}
                         <div className="lp-laptop" style={{
-                            flex: "1 1 600px",
-                            maxWidth: "800px",
-                            minWidth: "340px",
-                            marginLeft: "clamp(-160px, -10vw, -60px)",
+                            flex: "1 1 680px",
+                            maxWidth: "900px",
+                            minWidth: "380px",
+                            marginLeft: "clamp(-520px, -32vw, -260px)",
                             padding: "20px 0",
                         }}>
                             <div className="laptop-frame">
@@ -295,7 +252,7 @@ export default function LandingPage() {
                                     </div>
                                     <img
                                         className="laptop-screen-img"
-                                        src="/calendar-preview.png"
+                                        src="/dashboard-screenshot.png"
                                         alt="TMWA Calendar Dashboard"
                                     />
                                 </div>
@@ -317,7 +274,7 @@ export default function LandingPage() {
                                 fontWeight: 400,
                                 fontSize: "clamp(36px, 4.5vw, 56px)",
                                 lineHeight: 1.15,
-                                color: "#2c5ea8",
+                                color: "#116CE2",
                                 marginBottom: "24px",
                             }}>
                                 Efficiency,<br />
@@ -337,12 +294,18 @@ export default function LandingPage() {
                             </p>
 
                             <div className="lp-buttons" style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                                <Link to={ROUTES.LOGIN} className="lp-login-btn">
-                                    Login
-                                </Link>
-                                <Link to={ROUTES.SIGNUP} className="lp-cta-btn">
-                                    Get Started Today
-                                </Link>
+                                <Button
+                                    asChild
+                                    className="h-12 rounded-xl bg-[#dfdcc8] px-9 text-base font-semibold text-[#2c2c2c] hover:bg-[#d4d0bb]"
+                                >
+                                    <Link to={ROUTES.LOGIN}>Login</Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    className="h-12 rounded-xl bg-[#1f2023] px-9 text-base font-semibold text-white hover:bg-[#17181b]"
+                                >
+                                    <Link to={ROUTES.SIGNUP}>Get Started Today</Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
