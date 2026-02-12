@@ -3,6 +3,8 @@ import { useWorkspaces } from "@/features/workspace/hooks/useWorkspaces";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Search, Plus, Users } from "lucide-react";
+import { useCreateEvent } from "@/features/event/hooks/useCreateEvent";
+import CreateEventDialog from "@/features/event/components/CreateEventDialog";
 
 export default function CalendarHeader() {
     const {
@@ -121,14 +123,18 @@ export default function CalendarHeader() {
                 </Button>
 
                 {/* Add Event Button - Olive */}
-                <Button
-                    size="sm"
-                    className="gap-1.5 rounded-full text-white transition-all duration-200 text-[11px] h-7 px-3"
-                    style={{ backgroundColor: "#8d9b67" }}
-                >
-                    <Plus className="w-3 h-3" />
-                    Add Event
-                </Button>
+                <CreateEventDialog
+                    trigger={
+                        <Button
+                            size="sm"
+                            className="gap-1.5 rounded-full text-white transition-all duration-200 text-[11px] h-7 px-3"
+                            style={{ backgroundColor: "#8d9b67" }}
+                        >
+                            <Plus className="w-3 h-3" />
+                            Add Event
+                        </Button>
+                    }
+                />
             </div>
         </div>
     );

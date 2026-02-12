@@ -3,7 +3,7 @@ import { type Event } from "@/features/event/models/Event";
 import { toEvent } from "@/features/event/mappers/toEvent";
 
 export const eventRepository = {
-    async getEvents(workspaceId: string) {
+    async getEvents(workspaceId: number) {
         const { data, error } = await supabase
             .from("events")
             .select("*")
@@ -12,7 +12,7 @@ export const eventRepository = {
         return data.map(toEvent);
     },
 
-    async getEventsByRange(workspaceId: string, startDate: Date, endDate: Date) {
+    async getEventsByRange(workspaceId: number, startDate: Date, endDate: Date) {
         const { data, error } = await supabase
             .from("events")
             .select("*")
@@ -23,7 +23,7 @@ export const eventRepository = {
         return data.map(toEvent);
     },
 
-    async getEventById(id: string) {
+    async getEventById(id: number) {
         const { data, error } = await supabase
             .from("events")
             .select("*")
@@ -33,18 +33,25 @@ export const eventRepository = {
         return toEvent(data);
     },
 
-    async updateEvent(id: string, updates: Partial<Event>) {
+    async updateEvent(id: number, updates: Partial<Event>) {
+        // Map application model (camelCase) to DB columns (snake_case)
+        const dbUpdates: any = {};
+        if (updates.templateId !== undefined) dbUpdates.template_id = updates.templateId;
+        if (updates.workspaceId !== undefined) dbUpdates.workspace_id = updates.workspaceId;
+        if (updates.date !== undefined) dbUpdates.date = updates.date.toISOString();
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.data !== undefined) dbUpdates.data = updates.data;
+
         const { data, error } = await supabase.from("events")
-            .update({
-                ...updates,
-            })
+            .update(dbUpdates)
             .eq("id", id)
+            .select()
             .single();
         if (error) throw error;
         return toEvent(data);
     },
 
-    async deleteEvent(id: string) {
+    async deleteEvent(id: number) {
         const { error } = await supabase
             .from("events")
             .delete()
@@ -55,14 +62,20 @@ export const eventRepository = {
     async createEvent(event: Omit<Event, "id">) {
         const { data: eventData, error } = await supabase
             .from("events")
-            .insert(event)
+            .insert({
+                template_id: event.templateId,
+                workspace_id: event.workspaceId,
+                date: event.date.toISOString(),
+                title: event.title,
+                data: event.data,
+            })
             .select()
             .single();
         if (error) throw error;
         return toEvent(eventData);
     },
 
-    async getEventsByWorkspaceId(workspaceId: string) {
+    async getEventsByWorkspaceId(workspaceId: number) {
         const { data, error } = await supabase
             .from("events")
             .select("*")
