@@ -35,19 +35,19 @@ export default function CalendarGrid() {
     const nextMonthDays = totalCells - prevMonthDays.length - currentMonthDays.length;
     const nextMonthDaysArray = Array.from({ length: nextMonthDays }, (_, i) => i + 1);
 
-    const isToday = (day: number) => {
-        return (
-            day === today.getDate() &&
-            month === today.getMonth() &&
-            year === today.getFullYear()
-        );
-    };
-
     const isSelected = (day: number) => {
         return (
             day === selectedDate.getDate() &&
             month === selectedDate.getMonth() &&
             year === selectedDate.getFullYear()
+        );
+    };
+
+    const isToday = (day: number) => {
+        return (
+            day === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
         );
     };
 
@@ -58,70 +58,69 @@ export default function CalendarGrid() {
     };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden" style={{ backgroundColor: '#e8e4d9' }}>
+        <div
+            className="flex flex-col h-full overflow-hidden px-3 pb-3"
+            style={{ backgroundColor: "#e7e2d4" }}
+        >
             {/* Days of Week Header */}
-            <div className="grid grid-cols-7 border-b border-stone-300 shrink-0">
+            <div className="grid grid-cols-7 gap-1.5 px-1 py-2 shrink-0">
                 {DAYS_OF_WEEK.map((day) => (
                     <div
                         key={day}
-                        className="py-2 text-center text-xs font-medium text-stone-600 border-r border-stone-300 last:border-r-0"
+                        className="px-2 text-xs font-medium text-stone-500"
                     >
                         {day}
                     </div>
                 ))}
             </div>
 
-            {/* Calendar Grid - Fills remaining space */}
-            <div className="flex-1 grid grid-cols-7 grid-rows-6">
-                {/* Previous Month Days */}
+            {/* Calendar Grid */}
+            <div className="flex-1 grid grid-cols-7 grid-rows-6 gap-1.5 min-h-0">
                 {prevMonthDays.map((day) => (
                     <div
                         key={`prev-${day}`}
-                        className="border-b border-r border-stone-300/60 p-2 flex flex-col"
-                        style={{ backgroundColor: '#d4d0c5' }}
+                        className="rounded-2xl p-2.5 flex flex-col text-stone-300/20"
                     >
-                        <span className="text-xs text-stone-400">{day}</span>
+                        <span className="text-xs text-stone-600">{day}</span>
                     </div>
                 ))}
 
-                {/* Current Month Days */}
-                {currentMonthDays.map((day) => (
-                    <div
-                        key={`current-${day}`}
-                        onClick={() => handleDayClick(day, true)}
-                        className={`
-                            border-b border-r border-stone-300/60 p-2 cursor-pointer flex flex-col
-                            transition-all duration-200 hover:brightness-95
-                            ${isSelected(day) && !isToday(day) ? "ring-2 ring-inset ring-sky-400" : ""}
-                        `}
-                        style={{
-                            backgroundColor: isToday(day) ? '#3a3a38' : '#cdc9bc'
-                        }}
-                    >
-                        <span className={`
-                            inline-flex items-center justify-center w-6 h-6 text-xs font-medium rounded-full shrink-0
-                            ${isToday(day)
-                                ? "text-white"
-                                : isSelected(day)
-                                    ? "bg-sky-500 text-white"
-                                    : "text-stone-700"
-                            }
-                        `}>
-                            {day}
-                        </span>
-                        {/* Event space - fills remaining cell height */}
-                        <div className="flex-1 mt-1"></div>
-                    </div>
-                ))}
+                {currentMonthDays.map((day) => {
+                    const selected = isSelected(day);
+                    const todayCell = isToday(day);
 
-                {/* Next Month Days */}
+                    return (
+                        <div
+                            key={`current-${day}`}
+                            onClick={() => handleDayClick(day, true)}
+                            className={`
+                                rounded-2xl p-2.5 cursor-pointer flex flex-col transition-all duration-200 hover:brightness-95
+                                ${selected ? "ring-2 ring-inset ring-sky-400/60" : ""}
+                            `}
+                            style={{
+                                backgroundColor: todayCell ? "#1f2128" : "#dad6c8",
+                            }}
+                        >
+                            <span
+                                className={`
+                                    text-xs font-semibold
+                                    ${todayCell ? "text-stone-100" : selected ? "text-stone-800" : "text-stone-500"}
+                                `}
+                            >
+                                {day}
+                            </span>
+                            <div className="flex-1" />
+                        </div>
+                    );
+                })}
+
                 {nextMonthDaysArray.map((day) => (
                     <div
                         key={`next-${day}`}
-                        className="border-b border-r border-stone-300/60 p-2 flex flex-col"
-                        style={{ backgroundColor: '#d4d0c5' }}
+                        className="rounded-2xl p-2.5 flex flex-col"
+                        style={{ backgroundColor: "#e2ded1" }}
                     >
-                        <span className="text-xs text-stone-400">{day}</span>
+                        <span className="text-xs text-stone-400/80">{day}</span>
                     </div>
                 ))}
             </div>

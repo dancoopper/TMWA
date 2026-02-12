@@ -22,18 +22,18 @@ export default function DayDetailPanel() {
     return (
         <aside
             className={`
-                flex flex-col h-full border-l border-stone-400/50
+                flex flex-col h-full border-l border-stone-400/40
                 transition-all duration-500 ease-out overflow-hidden
-                ${rightPanelCollapsed ? "w-12" : "w-64"}
+                ${rightPanelCollapsed ? "w-10" : "w-64"}
             `}
-            style={{ backgroundColor: '#d8d4c8' }}
+            style={{ backgroundColor: "#dfdacb" }}
         >
             {/* Header with Toggle */}
-            <div className="p-3 border-b border-stone-400/50 shrink-0">
+            <div className="p-2 border-b border-stone-400/40 shrink-0">
                 {rightPanelCollapsed ? (
                     <button
                         onClick={toggleRightPanel}
-                        className="mx-auto block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                        className="mx-auto mt-1 block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
                     >
                         <PanelRight className="w-4 h-4 text-stone-500" />
                     </button>
@@ -71,6 +71,17 @@ export default function DayDetailPanel() {
                             <div className="flex-1 border-l border-stone-300/60 cursor-pointer" />
                         </div>
                     ))}
+                </div>
+            )}
+
+            {rightPanelCollapsed && (
+                <div className="mt-auto p-2 border-t border-stone-400/40">
+                    <button
+                        onClick={toggleRightPanel}
+                        className="mx-auto block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                    >
+                        <PanelRight className="w-4 h-4 text-stone-500" />
+                    </button>
                 </div>
             )}
         </aside>
