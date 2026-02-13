@@ -34,7 +34,7 @@ export default function Sidebar() {
             style={{ backgroundColor: "#dfdacb" }}
         >
             {/* Logo & Toggle */}
-            <div className="flex items-center justify-between p-3 border-b border-stone-400/40">
+            <div className="flex h-12 items-center justify-between px-3 border-b border-stone-400/40 shrink-0">
                 {!leftSidebarCollapsed
                     ? (
                         <span className="font-bold text-base text-stone-700">
@@ -64,7 +64,7 @@ export default function Sidebar() {
             {leftSidebarCollapsed && (
                 <button
                     onClick={toggleLeftSidebar}
-                    className="mx-auto mt-2 p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                    className="mx-auto mt-1.5 p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
                 >
                     <PanelLeft className="w-4 h-4 text-stone-500" />
                 </button>

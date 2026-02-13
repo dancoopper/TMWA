@@ -181,16 +181,16 @@ export default function DayDetailPanel() {
             style={{ backgroundColor: "#dfdacb" }}
         >
             {/* Header with Toggle */}
-            <div className="p-2 border-b border-stone-400/40 shrink-0">
+            <div className="h-12 px-2.5 border-b border-stone-400/40 shrink-0 flex items-center">
                 {rightPanelCollapsed ? (
                     <button
                         onClick={toggleRightPanel}
-                        className="mx-auto mt-1 block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                        className="mx-auto block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
                     >
                         <PanelRight className="w-4 h-4 text-stone-500" />
                     </button>
                 ) : (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between w-full">
                         <div>
                             <h2 className="text-sm font-semibold text-stone-800">
                                 {selectedDate.toLocaleDateString("en-US", { weekday: "long" })}
