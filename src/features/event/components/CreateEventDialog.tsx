@@ -49,14 +49,6 @@ function getDefaultTimeValue(date?: Date) {
     return DEFAULT_TIME;
 }
 
-function createField(prefix = "field"): TemplateField {
-    return {
-        id: `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name: "New field",
-        type: DEFAULT_FIELD_TYPE,
-    };
-}
-
 export default function CreateEventDialog({
     open,
     onOpenChange,
@@ -367,8 +359,7 @@ export default function CreateEventDialog({
                         <Button
                             type="submit"
                             size="sm"
-                            className="bg-sky-500 hover:bg-sky-600 text-white"
-                            disabled={isSubmitting || !title.trim() || activeSchema.length === 0}
+                            disabled={isSubmitting || !title.trim()}
                         >
                             {isSubmitting ? "Creating..." : "Create"}
                         </Button>

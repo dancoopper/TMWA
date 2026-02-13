@@ -66,10 +66,6 @@ export function useCreateEvent() {
                 throw new Error("No user ID found");
             }
 
-            if (!schema.length) {
-                throw new Error("Add at least one custom field");
-            }
-
             let templateId = selectedTemplateId;
 
             if (saveAsTemplateName?.trim()) {
