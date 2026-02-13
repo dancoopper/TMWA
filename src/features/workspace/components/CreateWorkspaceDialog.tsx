@@ -47,17 +47,17 @@ export default function CreateWorkspaceDialog({
             <DialogTrigger asChild>
                 {trigger}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                 <DialogHeader>
-                    <DialogTitle>Create Workspace</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-stone-800">Create Workspace</DialogTitle>
+                    <DialogDescription className="text-stone-600">
                         Create a new workspace to organize your tasks.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="flex flex-col gap-1">
-                            <Label htmlFor="name" className="text-gray-500">
+                            <Label htmlFor="name" className="text-stone-700">
                                 Name
                             </Label>
                             <Input
@@ -71,12 +71,13 @@ export default function CreateWorkspaceDialog({
                                 disabled={isPending}
                                 autoFocus
                                 onFocus={(e) => e.target.select()}
+                                className="col-span-3 border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                             />
                         </div>
                         <div className="flex flex-col gap-1">
                             <Label
                                 htmlFor="description"
-                                className="text-gray-500"
+                                className="text-stone-700"
                             >
                                 Description
                             </Label>
@@ -84,14 +85,18 @@ export default function CreateWorkspaceDialog({
                                 id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="col-span-3 min-h-[100px]"
+                                className="col-span-3 min-h-[100px] border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                                 placeholder="Enter a description..."
                                 disabled={isPending}
                             />
                         </div>
                     </div>
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={isPending}>
+                        <Button
+                            type="submit"
+                            disabled={isPending}
+                            className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
+                        >
                             {isPending ? "Creating..." : "Create"}
                         </Button>
                     </div>

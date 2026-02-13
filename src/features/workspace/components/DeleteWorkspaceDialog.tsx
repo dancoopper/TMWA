@@ -14,7 +14,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface DeleteWorkspaceDialogProps {
     trigger: React.ReactNode;
@@ -41,24 +41,28 @@ export default function DeleteWorkspaceDialog({
             <AlertDialogTrigger asChild>
                 {trigger}
             </AlertDialogTrigger>
-            <AlertDialogContent size="sm">
+            <AlertDialogContent size="sm" className="border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                 <AlertDialogHeader>
-                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                    <AlertDialogMedia className="bg-rose-500/20 text-rose-700">
                         <Trash2 className="w-6 h-6" />
                     </AlertDialogMedia>
-                    <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-stone-800">Delete workspace?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-stone-600">
                         This will permanently delete the workspace{" "}
                         <strong>{workspace.name}</strong>. This action cannot be
                         undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel variant="outline">
+                    <AlertDialogCancel
+                        variant="outline"
+                        className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
+                    >
                         Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
                         variant="destructive"
+                        className="bg-rose-700 text-white hover:bg-rose-800"
                         onClick={(e) => {
                             e.preventDefault();
                             handleDelete();

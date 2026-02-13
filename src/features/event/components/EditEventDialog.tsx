@@ -148,24 +148,25 @@ export default function EditEventDialog({
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                 <DialogHeader>
-                    <DialogTitle>Edit Event</DialogTitle>
+                    <DialogTitle className="text-stone-800">Edit Event</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-2">
                     <div className="space-y-2">
-                        <Label htmlFor="edit-event-title">Title</Label>
+                        <Label htmlFor="edit-event-title" className="text-stone-700">Title</Label>
                         <Input
                             id="edit-event-title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
                             disabled={isSubmitting}
+                            className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
-                            <Label htmlFor="edit-event-date">Date</Label>
+                            <Label htmlFor="edit-event-date" className="text-stone-700">Date</Label>
                             <Input
                                 id="edit-event-date"
                                 type="date"
@@ -173,10 +174,11 @@ export default function EditEventDialog({
                                 onChange={(e) => setDateValue(e.target.value)}
                                 required
                                 disabled={isSubmitting}
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="edit-event-time">Time</Label>
+                            <Label htmlFor="edit-event-time" className="text-stone-700">Time</Label>
                             <Input
                                 id="edit-event-time"
                                 type="time"
@@ -184,6 +186,7 @@ export default function EditEventDialog({
                                 onChange={(e) => setTimeValue(e.target.value)}
                                 required
                                 disabled={isSubmitting}
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                             />
                         </div>
                     </div>
@@ -199,6 +202,7 @@ export default function EditEventDialog({
                                                 checked={currentValue === true}
                                                 onChange={(e) => updateDetailValue(field.id, e.target.checked)}
                                                 disabled={isSubmitting}
+                                                className="accent-[#8d9b67]"
                                             />
                                             {field.name}
                                         </label>
@@ -212,7 +216,7 @@ export default function EditEventDialog({
                                             <select
                                                 value={typeof currentValue === "string" ? currentValue : ""}
                                                 onChange={(e) => updateDetailValue(field.id, e.target.value)}
-                                                className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                                                className="h-9 w-full rounded-md border border-stone-400/50 bg-[#efe9dc] px-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/25"
                                                 disabled={isSubmitting}
                                             >
                                                 <option value="">Select</option>
@@ -233,6 +237,7 @@ export default function EditEventDialog({
                                             value={typeof currentValue === "string" ? currentValue : ""}
                                             onChange={(e) => updateDetailValue(field.id, e.target.value)}
                                             disabled={isSubmitting}
+                                            className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                                         />
                                     </div>
                                 );
@@ -247,11 +252,12 @@ export default function EditEventDialog({
                             onChange={(e) => setNewFieldKey(e.target.value)}
                             placeholder="Field Name"
                             disabled={isSubmitting}
+                            className="border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                         />
                         <select
                             value={newFieldType}
                             onChange={(e) => setNewFieldType(e.target.value as TemplateFieldType)}
-                            className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                            className="h-9 rounded-md border border-stone-400/50 bg-[#efe9dc] px-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-sky-500/25"
                             disabled={isSubmitting}
                         >
                             <option value="text">Text</option>
@@ -263,6 +269,7 @@ export default function EditEventDialog({
                             variant="outline"
                             onClick={handleAddField}
                             disabled={isSubmitting || !newFieldKey.trim()}
+                            className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
                         >
                             +
                         </Button>
@@ -273,10 +280,15 @@ export default function EditEventDialog({
                             variant="outline"
                             onClick={() => setIsOpen(false)}
                             disabled={isSubmitting}
+                            className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting || !title.trim()}>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !title.trim()}
+                            className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
+                        >
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>
                     </div>

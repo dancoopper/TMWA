@@ -319,24 +319,28 @@ export default function DayDetailPanel() {
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent size="sm">
+                                        <AlertDialogContent size="sm" className="border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                                             <AlertDialogHeader>
-                                                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                                                <AlertDialogMedia className="bg-rose-500/20 text-rose-700">
                                                     <Trash2 className="w-6 h-6" />
                                                 </AlertDialogMedia>
-                                                <AlertDialogTitle>Delete event?</AlertDialogTitle>
-                                                <AlertDialogDescription>
+                                                <AlertDialogTitle className="text-stone-800">Delete event?</AlertDialogTitle>
+                                                <AlertDialogDescription className="text-stone-600">
                                                     This will permanently delete{" "}
                                                     <strong>{selectedEvent.title}</strong> on{" "}
                                                     <strong>{formatSelectedEventDate(selectedEvent.date)}</strong>. This action cannot be undone.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                                <AlertDialogCancel variant="outline">
+                                                <AlertDialogCancel
+                                                    variant="outline"
+                                                    className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
+                                                >
                                                     Cancel
                                                 </AlertDialogCancel>
                                                 <AlertDialogAction
                                                     variant="destructive"
+                                                    className="bg-rose-700 text-white hover:bg-rose-800"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         handleDeleteSelectedEvent();

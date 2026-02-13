@@ -62,9 +62,9 @@ export default function WorkspaceList() {
                                 <EllipsisVertical className="w-3.5 h-3.5" />
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent className="p-2 flex flex-col pt-1 items-start">
+                        <PopoverContent className="p-2 flex flex-col pt-1 items-start border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                             <PopoverHeader>
-                                <PopoverTitle className="text-gray-500 text-xs p-2">
+                                <PopoverTitle className="text-stone-600 text-xs p-2">
                                     Workspace
                                 </PopoverTitle>
                             </PopoverHeader>
@@ -75,7 +75,7 @@ export default function WorkspaceList() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="w-full justify-start" 
+                                        className="w-full justify-start text-stone-700 hover:bg-stone-300/60 hover:text-stone-800" 
                                     >
                                         <Pen className="w-3.5 h-3.5 mr-1" />
                                         Edit
@@ -88,7 +88,7 @@ export default function WorkspaceList() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="w-full justify-start"
+                                        className="w-full justify-start text-stone-700 hover:bg-rose-500/20 hover:text-rose-700"
                                     >
                                         <Trash className="w-3.5 h-3.5 mr-1" />
                                         Delete

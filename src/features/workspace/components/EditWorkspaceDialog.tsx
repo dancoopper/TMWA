@@ -53,7 +53,7 @@ export default function EditWorkspaceDialog({
             <DialogTrigger asChild>
                 {trigger}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                 <DialogHeader>
                     <DialogTitle>
                         Edit Workspace
@@ -63,26 +63,32 @@ export default function EditWorkspaceDialog({
                 <div className="py-2 space-y-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name" className="text-stone-700">Name</Label>
                             <Input
                                 id="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="e.g. My Awesome Project"
                                 required
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description" className="text-stone-700">Description</Label>
                             <Textarea
                                 id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="What is this workspace for?"
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                             />
                         </div>
                         <div className="flex justify-end items-center pt-2">
-                            <Button type="submit" disabled={isPending}>
+                            <Button
+                                type="submit"
+                                disabled={isPending}
+                                className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
+                            >
                                 {isPending ? "Saving..." : "Save Changes"}
                             </Button>
                         </div>
