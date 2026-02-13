@@ -31,7 +31,13 @@ export default function CalendarMonthCell({
             onClick={isCurrent ? onClick : undefined}
             className={`
                 rounded-2xl p-2.5 flex flex-col transition-all duration-200
-                ${isCurrent ? "cursor-pointer hover:brightness-95" : ""}
+                ${isCurrent
+                    ? (isSelected
+                        ? "cursor-pointer hover:brightness-95"
+                        : (isToday
+                            ? "cursor-pointer hover:shadow-[inset_0_0_0_9999px_rgba(255,255,255,0.08)]"
+                            : "cursor-pointer hover:shadow-[inset_0_0_0_9999px_rgba(87,83,78,0.16)]"))
+                    : ""}
                 ${isSelected ? "ring-2 ring-inset ring-sky-400/60" : ""}
                 ${variant === "previous" ? "text-stone-300/20" : ""}
             `}
@@ -62,14 +68,14 @@ export default function CalendarMonthCell({
                                 onEventClick?.(event.id);
                             }}
                             className={`
-                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-0.5 py-0.5 transition-all duration-150
+                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-1 py-0.5 border border-transparent transition-colors duration-150
                                 ${isCurrent
                                     ? (isToday
-                                        ? "text-stone-200/90 hover:bg-stone-100/20 hover:text-stone-100 hover:translate-x-px"
-                                        : "text-stone-700 hover:bg-stone-300/80 hover:text-stone-900 hover:translate-x-px")
+                                        ? "text-stone-200/90 hover:text-white hover:bg-stone-100/20 hover:border-stone-200/40"
+                                        : "text-stone-700 hover:text-stone-900 hover:bg-stone-300/70 hover:border-stone-500/35")
                                     : (variant === "next"
-                                        ? "text-stone-500/80 hover:bg-stone-300/65 hover:text-stone-700 hover:translate-x-px"
-                                        : "text-stone-500 hover:bg-stone-300/65 hover:text-stone-700 hover:translate-x-px")}
+                                        ? "text-stone-500/80 hover:text-stone-700 hover:bg-stone-300/55 hover:border-stone-500/30"
+                                        : "text-stone-500 hover:text-stone-700 hover:bg-stone-300/55 hover:border-stone-500/30")}
                             `}
                             title={event.title}
                         >
