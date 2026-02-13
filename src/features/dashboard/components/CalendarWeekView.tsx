@@ -217,10 +217,13 @@ export default function CalendarWeekView() {
                                 return (
                                     <div
                                         key={`${dayIdx}-${hour}`}
-                                        className="border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
-                                        style={{
-                                            backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
-                                        }}
+                                        className={`
+                                            border-b border-stone-400/40 transition-colors duration-50 cursor-pointer p-1
+                                            ${isToday(date)
+                                                ? "bg-[#1f2128]/15 hover:bg-[#1f2128]/25"
+                                                : "bg-[#dad6c8] hover:bg-[#1f2128]/15"
+                                            }
+                                        `}
                                         onClick={() => {
                                             setSelectedDate(slotDate);
                                             openCreateEventDialog(slotDate);

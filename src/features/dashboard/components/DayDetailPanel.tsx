@@ -184,7 +184,7 @@ export default function DayDetailPanel() {
                             return (
                                 <div
                                     key={time}
-                                    className="relative flex border-b border-stone-300/60 min-h-[40px] hover:bg-stone-300/30 transition-colors duration-200"
+                                    className="relative flex border-b border-stone-400/40 min-h-[40px] hover:bg-[#1f2128]/15 transition-colors duration-200"
                                 >
                                     {showCurrentTimeLine ? (
                                         <div
@@ -201,7 +201,7 @@ export default function DayDetailPanel() {
                                         {time}
                                     </div>
                                     <div
-                                        className="relative flex-1 border-l border-stone-300/60 px-2 py-1.5 cursor-pointer"
+                                        className="relative flex-1 border-l border-stone-400/40 px-2 py-1.5 cursor-pointer hover:bg-[#1f2128]/15 transition-colors duration-200"
                                         onClick={() => {
                                             if (slotHour === null) return;
                                             const slotDate = new Date(selectedDate);
