@@ -1,10 +1,16 @@
+type MonthCellEventItem = {
+    id: number;
+    title: string;
+};
+
 interface CalendarMonthCellProps {
     day: number;
     variant: "previous" | "current" | "next";
     isSelected?: boolean;
     isToday?: boolean;
-    eventTitles?: string[];
+    eventItems?: MonthCellEventItem[];
     onClick?: () => void;
+    onEventClick?: (eventId: number) => void;
 }
 
 export default function CalendarMonthCell({
@@ -12,19 +18,26 @@ export default function CalendarMonthCell({
     variant,
     isSelected = false,
     isToday = false,
-    eventTitles = [],
+    eventItems = [],
     onClick,
+    onEventClick,
 }: CalendarMonthCellProps) {
     const isCurrent = variant === "current";
-    const visibleEventTitles = eventTitles.slice(0, 2);
-    const remainingEventCount = eventTitles.length - visibleEventTitles.length;
+    const visibleEvents = eventItems.slice(0, 2);
+    const remainingEventCount = eventItems.length - visibleEvents.length;
 
     return (
         <div
             onClick={isCurrent ? onClick : undefined}
             className={`
                 rounded-2xl p-2.5 flex flex-col transition-all duration-200
-                ${isCurrent ? "cursor-pointer hover:brightness-95" : ""}
+                ${isCurrent
+                    ? (isSelected
+                        ? "cursor-pointer hover:brightness-95"
+                        : (isToday
+                            ? "cursor-pointer hover:shadow-[inset_0_0_0_9999px_rgba(255,255,255,0.08)]"
+                            : "cursor-pointer hover:shadow-[inset_0_0_0_9999px_rgba(87,83,78,0.16)]"))
+                    : ""}
                 ${isSelected ? "ring-2 ring-inset ring-sky-400/60" : ""}
                 ${variant === "previous" ? "text-stone-300/20" : ""}
             `}
@@ -45,23 +58,29 @@ export default function CalendarMonthCell({
             >
                 {day}
             </span>
-            {eventTitles.length > 0 ? (
+            {eventItems.length > 0 ? (
                 <div className="mt-1 space-y-1">
-                    {visibleEventTitles.map((title, index) => (
+                    {visibleEvents.map((event) => (
                         <p
-                            key={`${title}-${index}`}
+                            key={event.id}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEventClick?.(event.id);
+                            }}
                             className={`
-                                text-[10px] leading-tight truncate flex items-center gap-1
+                                text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-1 py-0.5 border border-transparent transition-colors duration-150
                                 ${isCurrent
-                                    ? (isToday ? "text-stone-200/90" : "text-stone-700")
+                                    ? (isToday
+                                        ? "text-stone-200/90 hover:text-white hover:bg-stone-100/20 hover:border-stone-200/40"
+                                        : "text-stone-700 hover:text-stone-900 hover:bg-stone-300/70 hover:border-stone-500/35")
                                     : (variant === "next"
-                                        ? "text-stone-500/80"
-                                        : "text-stone-500")}
+                                        ? "text-stone-500/80 hover:text-stone-700 hover:bg-stone-300/55 hover:border-stone-500/30"
+                                        : "text-stone-500 hover:text-stone-700 hover:bg-stone-300/55 hover:border-stone-500/30")}
                             `}
-                            title={title}
+                            title={event.title}
                         >
                             <span className="text-[9px] leading-none">•</span>
-                            <span className="truncate">{title}</span>
+                            <span className="truncate">{event.title}</span>
                         </p>
                     ))}
                     {remainingEventCount > 0 ? (
