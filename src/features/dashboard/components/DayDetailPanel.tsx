@@ -1,8 +1,21 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
+import { useDeleteEvent } from "@/features/event/hooks/useDeleteEvent";
 import type { Event } from "@/features/event/models/Event";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogMedia,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const TIME_SLOTS = [
     "12AM", "1AM", "2AM", "3AM", "4AM", "5AM",
@@ -90,6 +103,8 @@ export default function DayDetailPanel() {
     const currentMinute = today.getMinutes();
     const currentTimeLabel = formatCurrentTimeLabel(today);
     const showCurrentDayIndicator = isSameDay(selectedDate, today);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const { mutate: deleteEvent, isPending: isDeletePending } = useDeleteEvent();
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString("en-US", {
@@ -105,6 +120,18 @@ export default function DayDetailPanel() {
             day: "2-digit",
             year: "numeric",
         });
+
+    const handleDeleteSelectedEvent = () => {
+        if (!selectedEvent) return;
+
+        deleteEvent(selectedEvent.id, {
+            onSuccess: () => {
+                clearSelectedEvent();
+                setIsDeleteDialogOpen(false);
+            },
+        });
+    };
+
     return (
         <aside
             className={`
@@ -219,14 +246,49 @@ export default function DayDetailPanel() {
                                     >
                                         <PenLine className="w-3.5 h-3.5 text-stone-600" />
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
-                                        aria-label="Delete event"
-                                        title="Delete event"
+                                    <AlertDialog
+                                        open={isDeleteDialogOpen}
+                                        onOpenChange={setIsDeleteDialogOpen}
                                     >
-                                        <Trash2 className="w-3.5 h-3.5 text-stone-600" />
-                                    </button>
+                                        <AlertDialogTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                                aria-label="Delete event"
+                                                title="Delete event"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5 text-stone-600" />
+                                            </button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent size="sm">
+                                            <AlertDialogHeader>
+                                                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                                                    <Trash2 className="w-6 h-6" />
+                                                </AlertDialogMedia>
+                                                <AlertDialogTitle>Delete event?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete{" "}
+                                                    <strong>{selectedEvent.title}</strong> on{" "}
+                                                    <strong>{formatSelectedEventDate(selectedEvent.date)}</strong>. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel variant="outline">
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    variant="destructive"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleDeleteSelectedEvent();
+                                                    }}
+                                                    disabled={isDeletePending}
+                                                >
+                                                    {isDeletePending ? "Deleting..." : "Delete"}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                     <button
                                         type="button"
                                         onClick={clearSelectedEvent}
