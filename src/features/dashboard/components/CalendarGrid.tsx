@@ -22,7 +22,15 @@ function toDayKey(date: Date) {
 }
 
 export default function CalendarGrid() {
-    const { selectedDate, setSelectedDate, selectEvent } = useDashboardStore();
+    const {
+        selectedDate,
+        setSelectedDate,
+        selectEvent,
+        clearSelectedEvent,
+        rightPanelCollapsed,
+        toggleRightPanel,
+        openCreateEventDialog,
+    } = useDashboardStore();
 
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -83,6 +91,17 @@ export default function CalendarGrid() {
         if (!isCurrentMonth) return;
         const newDate = new Date(year, month, day);
         setSelectedDate(newDate);
+        clearSelectedEvent();
+        if (rightPanelCollapsed) {
+            toggleRightPanel();
+        }
+    };
+
+    const handleDayDoubleClick = (day: number, isCurrentMonth: boolean) => {
+        if (!isCurrentMonth) return;
+        const newDate = new Date(year, month, day);
+        setSelectedDate(newDate);
+        openCreateEventDialog(newDate);
     };
 
     return (
@@ -132,6 +151,7 @@ export default function CalendarGrid() {
                             isToday={todayCell}
                             eventItems={getDayEvents(new Date(year, month, day))}
                             onClick={() => handleDayClick(day, true)}
+                            onDoubleClick={() => handleDayDoubleClick(day, true)}
                             onEventClick={(eventId) => {
                                 const event = getDayEvents(new Date(year, month, day)).find(
                                     (dayEvent) => dayEvent.id === eventId

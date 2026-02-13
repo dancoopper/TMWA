@@ -1,6 +1,10 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
 import { useDeleteEvent } from "@/features/event/hooks/useDeleteEvent";
 import type { Event } from "@/features/event/models/Event";
+import EditEventDialog from "@/features/event/components/EditEventDialog";
+import { useTemplates } from "@/features/template/hooks/useTemplates";
+import { normalizeTemplateFields } from "@/features/template/templateFields";
+import { buildEventPreview, normalizeEventValues } from "@/features/event/eventFieldValues";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
@@ -23,22 +27,6 @@ const TIME_SLOTS = [
     "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
     "6PM", "7PM", "8PM", "9PM", "10PM", "11PM",
 ];
-
-function getEventDataPreview(data: Event["data"]) {
-    if (!Array.isArray(data)) return "No details";
-    if (data.length === 0) return "No details";
-
-    const firstItem = data[0];
-    if (firstItem && typeof firstItem === "object" && !Array.isArray(firstItem)) {
-        const entries = Object.entries(firstItem as Record<string, unknown>);
-        if (entries.length > 0) {
-            const [key, value] = entries[0];
-            return `${key}: ${String(value)}`;
-        }
-    }
-
-    return `${data.length} item${data.length > 1 ? "s" : ""}`;
-}
 
 function parseHour24(timeSlot: string) {
     const parsedHour = Number.parseInt(timeSlot, 10);
@@ -65,6 +53,44 @@ function isSameDay(a: Date, b: Date) {
     );
 }
 
+function formatDetailValue(value: unknown): string {
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (typeof value === "string") return value.trim().length > 0 ? value : "N/A";
+    if (typeof value === "number") return String(value);
+    if (value === null || value === undefined) return "N/A";
+    return String(value);
+}
+
+function buildSelectedEventDetails(
+    event: Event,
+    templatesById: Map<number, ReturnType<typeof normalizeTemplateFields>>,
+) {
+    const templateFields = templatesById.get(event.templateId) ?? [];
+
+    if (templateFields.length > 0) {
+        const normalized = normalizeEventValues(templateFields, event.data);
+        const valueById = new Map(normalized.map((item) => [item.id, item.value]));
+        return templateFields.map((field) => ({
+            label: field.name,
+            value: formatDetailValue(valueById.get(field.id)),
+        }));
+    }
+
+    if (Array.isArray(event.data)) {
+        const details: Array<{ label: string; value: string }> = [];
+        for (const item of event.data) {
+            if (item && typeof item === "object" && !Array.isArray(item)) {
+                for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+                    details.push({ label: key, value: formatDetailValue(value) });
+                }
+            }
+        }
+        return details;
+    }
+
+    return [];
+}
+
 export default function DayDetailPanel() {
     const {
         rightPanelCollapsed,
@@ -73,6 +99,7 @@ export default function DayDetailPanel() {
         selectedEvent,
         selectEvent,
         clearSelectedEvent,
+        openCreateEventDialog,
     } = useDashboardStore();
     const today = new Date();
     const dayStart = new Date(selectedDate);
@@ -80,6 +107,14 @@ export default function DayDetailPanel() {
     const dayEnd = new Date(selectedDate);
     dayEnd.setHours(23, 59, 59, 999);
     const { data: events = [] } = useEvents({ startDate: dayStart, endDate: dayEnd });
+    const { data: templates = [] } = useTemplates({ includeHidden: true });
+    const templatesById = useMemo(() => {
+        const mapped = new Map<number, ReturnType<typeof normalizeTemplateFields>>();
+        for (const template of templates) {
+            mapped.set(template.id, normalizeTemplateFields(template.data));
+        }
+        return mapped;
+    }, [templates]);
     const eventsByHour = useMemo(() => {
         const grouped = new Map<number, Event[]>();
 
@@ -131,6 +166,10 @@ export default function DayDetailPanel() {
             },
         });
     };
+    const selectedEventDetails = useMemo(() => {
+        if (!selectedEvent) return [];
+        return buildSelectedEventDetails(selectedEvent, templatesById);
+    }, [selectedEvent, templatesById]);
 
     return (
         <aside
@@ -142,16 +181,16 @@ export default function DayDetailPanel() {
             style={{ backgroundColor: "#dfdacb" }}
         >
             {/* Header with Toggle */}
-            <div className="p-2 border-b border-stone-400/40 shrink-0">
+            <div className="h-12 px-2.5 border-b border-stone-400/40 shrink-0 flex items-center">
                 {rightPanelCollapsed ? (
                     <button
                         onClick={toggleRightPanel}
-                        className="mx-auto mt-1 block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                        className="mx-auto block p-1.5 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
                     >
                         <PanelRight className="w-4 h-4 text-stone-500" />
                     </button>
                 ) : (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between w-full">
                         <div>
                             <h2 className="text-sm font-semibold text-stone-800">
                                 {selectedDate.toLocaleDateString("en-US", { weekday: "long" })}
@@ -183,7 +222,7 @@ export default function DayDetailPanel() {
                             return (
                                 <div
                                     key={time}
-                                    className="relative flex border-b border-stone-300/60 min-h-[40px] hover:bg-stone-300/30 transition-colors duration-200"
+                                    className="relative flex border-b border-stone-400/40 min-h-[40px] hover:bg-[#1f2128]/15 transition-colors duration-200"
                                 >
                                     {showCurrentTimeLine ? (
                                         <div
@@ -199,11 +238,22 @@ export default function DayDetailPanel() {
                                     <div className="w-12 shrink-0 py-2 px-2 text-[10px] text-stone-500 text-right">
                                         {time}
                                     </div>
-                                    <div className="relative flex-1 border-l border-stone-300/60 px-2 py-1.5 cursor-pointer">
+                                    <div
+                                        className="relative flex-1 border-l border-stone-400/40 px-2 py-1.5 cursor-pointer hover:bg-[#1f2128]/15 transition-colors duration-200"
+                                        onClick={() => {
+                                            if (slotHour === null) return;
+                                            const slotDate = new Date(selectedDate);
+                                            slotDate.setHours(slotHour, 0, 0, 0);
+                                            openCreateEventDialog(slotDate);
+                                        }}
+                                    >
                                         {slotEvents.slice(0, 2).map((event) => (
                                             <div
                                                 key={event.id}
-                                                onClick={() => selectEvent(event)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    selectEvent(event);
+                                                }}
                                                 className="rounded-sm border border-stone-500/20 bg-stone-200/55 px-1.5 py-1 mb-1 last:mb-0 cursor-pointer transition-all duration-150 hover:bg-stone-300/80 hover:border-stone-600/45 hover:shadow-[inset_0_0_0_1px_rgba(87,83,78,0.35)] hover:-translate-y-px"
                                                 title={event.title}
                                             >
@@ -211,7 +261,10 @@ export default function DayDetailPanel() {
                                                     {event.title}
                                                 </p>
                                                 <p className="text-[9px] leading-tight truncate text-stone-600">
-                                                    {getEventDataPreview(event.data)}
+                                                    {buildEventPreview(
+                                                        templatesById.get(event.templateId) ?? [],
+                                                        event.data,
+                                                    )}
                                                 </p>
                                             </div>
                                         ))}
@@ -227,7 +280,7 @@ export default function DayDetailPanel() {
                     </div>
 
                     {selectedEvent ? (
-                        <div className="h-1/2 border-t border-stone-400/40 px-2 py-2.5">
+                        <div className="h-1/2 border-t border-stone-400/40 px-2 py-2.5 flex flex-col min-h-0">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="text-xs font-semibold text-stone-800 truncate" title={selectedEvent.title}>
@@ -238,14 +291,20 @@ export default function DayDetailPanel() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button
-                                        type="button"
-                                        className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
-                                        aria-label="Edit event"
-                                        title="Edit event"
-                                    >
-                                        <PenLine className="w-3.5 h-3.5 text-stone-600" />
-                                    </button>
+                                    <EditEventDialog
+                                        event={selectedEvent}
+                                        onEventUpdated={selectEvent}
+                                        trigger={
+                                            <button
+                                                type="button"
+                                                className="p-1 rounded-md text-stone-600 hover:text-sky-700 hover:bg-sky-500/20 transition-colors duration-200"
+                                                aria-label="Edit event"
+                                                title="Edit event"
+                                            >
+                                                <PenLine className="w-3.5 h-3.5" />
+                                            </button>
+                                        }
+                                    />
                                     <AlertDialog
                                         open={isDeleteDialogOpen}
                                         onOpenChange={setIsDeleteDialogOpen}
@@ -253,31 +312,35 @@ export default function DayDetailPanel() {
                                         <AlertDialogTrigger asChild>
                                             <button
                                                 type="button"
-                                                className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                                className="p-1 rounded-md text-stone-600 hover:text-rose-700 hover:bg-rose-500/20 transition-colors duration-200"
                                                 aria-label="Delete event"
                                                 title="Delete event"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5 text-stone-600" />
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent size="sm">
+                                        <AlertDialogContent size="sm" className="border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                                             <AlertDialogHeader>
-                                                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                                                <AlertDialogMedia className="bg-rose-500/20 text-rose-700">
                                                     <Trash2 className="w-6 h-6" />
                                                 </AlertDialogMedia>
-                                                <AlertDialogTitle>Delete event?</AlertDialogTitle>
-                                                <AlertDialogDescription>
+                                                <AlertDialogTitle className="text-stone-800">Delete event?</AlertDialogTitle>
+                                                <AlertDialogDescription className="text-stone-600">
                                                     This will permanently delete{" "}
                                                     <strong>{selectedEvent.title}</strong> on{" "}
                                                     <strong>{formatSelectedEventDate(selectedEvent.date)}</strong>. This action cannot be undone.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                                <AlertDialogCancel variant="outline">
+                                                <AlertDialogCancel
+                                                    variant="outline"
+                                                    className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
+                                                >
                                                     Cancel
                                                 </AlertDialogCancel>
                                                 <AlertDialogAction
                                                     variant="destructive"
+                                                    className="bg-rose-700 text-white hover:bg-rose-800"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         handleDeleteSelectedEvent();
@@ -292,13 +355,32 @@ export default function DayDetailPanel() {
                                     <button
                                         type="button"
                                         onClick={clearSelectedEvent}
-                                        className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                        className="p-1 rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-300/60 transition-colors duration-200"
                                         aria-label="Close selected event details"
                                         title="Close"
                                     >
-                                        <X className="w-3.5 h-3.5 text-stone-600" />
+                                        <X className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
+                            </div>
+                            <div className="mt-2 space-y-1.5 overflow-y-auto pr-1">
+                                {selectedEventDetails.length > 0 ? (
+                                    selectedEventDetails.map((detail, index) => (
+                                        <div
+                                            key={`${detail.label}-${index}`}
+                                            className="rounded-sm border border-stone-400/35 bg-stone-100/55 px-2 py-1"
+                                        >
+                                            <p className="text-[10px] uppercase tracking-wide text-stone-500 truncate">
+                                                {detail.label}
+                                            </p>
+                                            <p className="text-[11px] text-stone-800 wrap-break-word">
+                                                {detail.value}
+                                            </p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-[11px] text-stone-500">No details available.</p>
+                                )}
                             </div>
                         </div>
                     ) : null}
