@@ -5,12 +5,17 @@ import { Label } from "@/components/ui/label";
 import type { Event } from "@/features/event/models/Event";
 import { useUpdateEvent } from "@/features/event/hooks/useUpdateEvent";
 import { useTemplates } from "@/features/template/hooks/useTemplates";
-import { normalizeTemplateFields, type TemplateField } from "@/features/template/templateFields";
+import {
+    normalizeTemplateFields,
+    type TemplateField,
+    type TemplateFieldType,
+} from "@/features/template/templateFields";
 import {
     normalizeEventValues,
     type EventFieldValue,
 } from "@/features/event/eventFieldValues";
 import { useCreateTemplate } from "@/features/template/hooks/useCreateTemplate";
+import { useUpdateTemplate } from "@/features/template/hooks/useUpdateTemplate";
 
 import {
     Dialog,
@@ -25,6 +30,8 @@ interface EditEventDialogProps {
     event: Event;
     onEventUpdated?: (event: Event) => void;
 }
+
+const DEFAULT_FIELD_TYPE: TemplateFieldType = "text";
 
 function toDateInputValue(date: Date) {
     const year = date.getFullYear();
@@ -48,80 +55,94 @@ export default function EditEventDialog({
     const [title, setTitle] = useState(event.title);
     const [dateValue, setDateValue] = useState(toDateInputValue(event.date));
     const [timeValue, setTimeValue] = useState(toTimeInputValue(event.date));
+    const [schema, setSchema] = useState<TemplateField[]>([]);
     const [detailValues, setDetailValues] = useState<EventFieldValue[]>([]);
-    const [templateName, setTemplateName] = useState("");
+    const [newFieldKey, setNewFieldKey] = useState("");
+    const [newFieldType, setNewFieldType] = useState<TemplateFieldType>(DEFAULT_FIELD_TYPE);
 
-    const { mutate: updateEvent, isPending } = useUpdateEvent();
+    const { mutateAsync: updateEventAsync, isPending } = useUpdateEvent();
     const {
-        mutate: createTemplate,
+        mutateAsync: createTemplateAsync,
         isPending: isCreateTemplatePending,
     } = useCreateTemplate();
+    const {
+        mutateAsync: updateTemplateAsync,
+        isPending: isUpdateTemplatePending,
+    } = useUpdateTemplate();
     const { data: templates = [] } = useTemplates({ includeHidden: true });
     const currentTemplate = useMemo(
         () => templates.find((template) => template.id === event.templateId) ?? null,
         [templates, event.templateId],
     );
-    const schema: TemplateField[] = useMemo(
-        () => normalizeTemplateFields(currentTemplate?.data ?? []),
-        [currentTemplate?.data],
-    );
-    const isSubmitting = isPending || isCreateTemplatePending;
+    const isSubmitting = isPending || isCreateTemplatePending || isUpdateTemplatePending;
 
     useEffect(() => {
+        const nextSchema = normalizeTemplateFields(currentTemplate?.data ?? []);
         setTitle(event.title);
         setDateValue(toDateInputValue(event.date));
         setTimeValue(toTimeInputValue(event.date));
-        setDetailValues(normalizeEventValues(schema, event.data));
-    }, [event, event.data, schema]);
+        setSchema(nextSchema);
+        setDetailValues(normalizeEventValues(nextSchema, event.data));
+        setNewFieldKey("");
+        setNewFieldType(DEFAULT_FIELD_TYPE);
+    }, [event, event.data, currentTemplate?.data]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const parsedDate = new Date(`${dateValue}T${timeValue}:00`);
-        const normalizedValues = normalizeEventValues(schema, detailValues);
+        const normalizedSchema = normalizeTemplateFields(schema);
+        const normalizedValues = normalizeEventValues(normalizedSchema, detailValues);
+        const currentSchema = normalizeTemplateFields(currentTemplate?.data ?? []);
+        const schemaChanged =
+            JSON.stringify(normalizedSchema) !== JSON.stringify(currentSchema);
+        let nextTemplateId = event.templateId;
 
-        updateEvent(
-            {
-                id: event.id,
-                title: title.trim(),
-                date: parsedDate,
-                data: normalizedValues,
-            },
-            {
-                onSuccess: (updatedEvent) => {
-                    onEventUpdated?.(updatedEvent);
-                    setIsOpen(false);
-                },
+        if (normalizedSchema.length > 0 && schemaChanged) {
+            if (currentTemplate?.isHidden) {
+                await updateTemplateAsync({
+                    id: currentTemplate.id,
+                    data: normalizedSchema,
+                });
+            } else {
+                const hiddenTemplate = await createTemplateAsync({
+                    name: `Hidden template ${Date.now()}`,
+                    data: normalizedSchema,
+                    isHidden: true,
+                });
+                nextTemplateId = hiddenTemplate.id;
             }
-        );
-    };
+        }
 
-    const handleSaveTemplate = () => {
-        if (!templateName.trim() || schema.length === 0) return;
-        createTemplate(
-            {
-                name: templateName.trim(),
-                data: schema,
-                isHidden: false,
-            },
-            {
-                onSuccess: (template) => {
-                    setTemplateName("");
-                    updateEvent({
-                        id: event.id,
-                        title: title.trim(),
-                        date: new Date(`${dateValue}T${timeValue}:00`),
-                        templateId: template.id,
-                        data: normalizeEventValues(schema, detailValues),
-                    });
-                },
-            }
-        );
+        const updatedEvent = await updateEventAsync({
+            id: event.id,
+            title: title.trim(),
+            date: parsedDate,
+            templateId: nextTemplateId,
+            data: normalizedValues,
+        });
+        onEventUpdated?.(updatedEvent);
+        setIsOpen(false);
     };
 
     const updateDetailValue = (fieldId: string, value: EventFieldValue["value"]) => {
         setDetailValues((current) =>
             current.map((item) => (item.id === fieldId ? { ...item, value } : item)),
         );
+    };
+
+    const handleAddField = () => {
+        if (!newFieldKey.trim()) return;
+        const nextField: TemplateField = {
+            id: `field-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            name: newFieldKey.trim(),
+            type: newFieldType,
+            options: newFieldType === "select" ? ["Option 1", "Option 2"] : undefined,
+        };
+        const nextSchema = [...schema, nextField];
+        setSchema(nextSchema);
+        setDetailValues((current) => normalizeEventValues(nextSchema, current));
+        setNewFieldKey("");
+        setNewFieldType(DEFAULT_FIELD_TYPE);
     };
 
     return (
@@ -167,8 +188,7 @@ export default function EditEventDialog({
                         </div>
                     </div>
                     {schema.length > 0 ? (
-                        <div className="space-y-2 rounded-md border border-stone-300/60 p-3">
-                            <Label className="text-gray-500">Event Details</Label>
+                        <div className="space-y-2">
                             {schema.map((field) => {
                                 const currentValue = detailValues.find((item) => item.id === field.id)?.value;
                                 if (field.type === "checkbox") {
@@ -218,25 +238,35 @@ export default function EditEventDialog({
                                 );
                             })}
                         </div>
-                    ) : null}
-                    {schema.length > 0 ? (
-                        <div className="grid grid-cols-[1fr_auto] gap-2">
-                            <Input
-                                value={templateName}
-                                onChange={(e) => setTemplateName(e.target.value)}
-                                placeholder="Save current format as template"
-                                disabled={isSubmitting}
-                            />
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleSaveTemplate}
-                                disabled={isSubmitting || !templateName.trim()}
-                            >
-                                Save Format
-                            </Button>
-                        </div>
-                    ) : null}
+                    ) : (
+                        <p className="text-xs text-stone-500">No fields yet. Add one below.</p>
+                    )}
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                        <Input
+                            value={newFieldKey}
+                            onChange={(e) => setNewFieldKey(e.target.value)}
+                            placeholder="Field Name"
+                            disabled={isSubmitting}
+                        />
+                        <select
+                            value={newFieldType}
+                            onChange={(e) => setNewFieldType(e.target.value as TemplateFieldType)}
+                            className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                            disabled={isSubmitting}
+                        >
+                            <option value="text">Text</option>
+                            <option value="checkbox">Checkbox</option>
+                            <option value="select">Select</option>
+                        </select>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleAddField}
+                            disabled={isSubmitting || !newFieldKey.trim()}
+                        >
+                            +
+                        </Button>
+                    </div>
                     <div className="flex justify-end gap-2 pt-1">
                         <Button
                             type="button"
