@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { eventRepository } from "@/repositories/eventRepository";
+import type { EventFieldValue } from "@/features/event/eventFieldValues";
 
 export function useUpdateEvent() {
     const queryClient = useQueryClient();
@@ -10,11 +11,15 @@ export function useUpdateEvent() {
             id,
             title,
             date,
+            data,
+            templateId,
         }: {
             id: number;
             title: string;
             date: Date;
-        }) => eventRepository.updateEvent(id, { title, date }),
+            data?: EventFieldValue[];
+            templateId?: number;
+        }) => eventRepository.updateEvent(id, { title, date, data, templateId }),
         onSuccess: async () => {
             toast.success("Event updated successfully!");
             await queryClient.invalidateQueries({

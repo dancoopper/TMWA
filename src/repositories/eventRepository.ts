@@ -16,6 +16,8 @@ export type CreateEventInput = {
 export type UpdateEventInput = {
     title?: string;
     date?: Date;
+    data?: Database["public"]["Tables"]["events"]["Update"]["data"];
+    templateId?: number;
 };
 
 export const eventRepository = {
@@ -53,6 +55,8 @@ export const eventRepository = {
         const payload: Database["public"]["Tables"]["events"]["Update"] = {};
         if (typeof updates.title === "string") payload.title = updates.title;
         if (updates.date) payload.date = updates.date.toISOString();
+        if (updates.data !== undefined) payload.data = updates.data;
+        if (typeof updates.templateId === "number") payload.template_id = updates.templateId;
 
         const { data, error } = await supabase.from("events")
             .update(payload)

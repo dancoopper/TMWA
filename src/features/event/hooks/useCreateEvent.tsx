@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/stores/authStore";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { templateRepository } from "@/repositories/templateRepository";
+import type { EventFieldValue } from "@/features/event/eventFieldValues";
+import type { TemplateField } from "@/features/template/templateFields";
 
 function getReadableErrorMessage(error: unknown): string {
     if (error instanceof Error) {
@@ -39,9 +41,20 @@ export function useCreateEvent() {
 
     return useMutation({
         mutationFn: async (
-            { title, date }: {
+            {
+                title,
+                date,
+                data,
+                selectedTemplateId,
+                schema,
+                saveAsTemplateName,
+            }: {
                 title: string;
                 date: Date;
+                data: EventFieldValue[];
+                selectedTemplateId?: number;
+                schema: TemplateField[];
+                saveAsTemplateName?: string;
             },
         ) => {
             if (!session?.user.id) throw new Error("No active session");
@@ -53,19 +66,38 @@ export function useCreateEvent() {
                 throw new Error("No user ID found");
             }
 
-            const templates = await templateRepository.getTemplatesByUserId(userId);
-            const defaultTemplate = templates[0];
+            if (!schema.length) {
+                throw new Error("Add at least one custom field");
+            }
 
-            if (!defaultTemplate) {
-                throw new Error("No event template found for your account");
+            let templateId = selectedTemplateId;
+
+            if (saveAsTemplateName?.trim()) {
+                const template = await templateRepository.createTemplate({
+                    userId,
+                    name: saveAsTemplateName.trim(),
+                    data: schema,
+                    isHidden: false,
+                });
+                templateId = template.id;
+            }
+
+            if (!templateId) {
+                const hiddenTemplate = await templateRepository.createTemplate({
+                    userId,
+                    name: `Hidden template ${Date.now()}`,
+                    data: schema,
+                    isHidden: true,
+                });
+                templateId = hiddenTemplate.id;
             }
 
             return await eventRepository.createEvent({
                 title: title.trim(),
                 date,
                 workspaceId: selectedWorkspaceId,
-                templateId: defaultTemplate.id,
-                data: [],
+                templateId,
+                data,
             });
         },
         onSuccess: async (event) => {
@@ -73,6 +105,9 @@ export function useCreateEvent() {
             toast.success("Event created successfully!");
             await queryClient.invalidateQueries({
                 queryKey: ["events"],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: ["templates"],
             });
         },
         onError: (error) => {

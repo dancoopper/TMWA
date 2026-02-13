@@ -6,6 +6,8 @@ type TemplateRow = Database['public']['Tables']['templates']['Row'];
 export function toTemplate(row: TemplateRow): Template {
     const mappedData = {
         id: row.id,
+        name: row.name,
+        isHidden: row.is_hidden,
         createdAt: row.created_at,
         data: row.data,
         userId: row.user_id,

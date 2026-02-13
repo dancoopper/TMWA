@@ -1,5 +1,8 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
+import { buildEventPreview } from "@/features/event/eventFieldValues";
 import type { Event } from "@/features/event/models/Event";
+import { useTemplates } from "@/features/template/hooks/useTemplates";
+import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo } from "react";
 
@@ -25,22 +28,6 @@ function toDayKey(date: Date) {
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const dd = String(date.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
-}
-
-function getEventDataPreview(data: Event["data"]) {
-    if (!Array.isArray(data)) return "No details";
-    if (data.length === 0) return "No details";
-
-    const firstItem = data[0];
-    if (firstItem && typeof firstItem === "object" && !Array.isArray(firstItem)) {
-        const entries = Object.entries(firstItem as Record<string, unknown>);
-        if (entries.length > 0) {
-            const [key, value] = entries[0];
-            return `${key}: ${String(value)}`;
-        }
-    }
-
-    return `${data.length} item${data.length > 1 ? "s" : ""}`;
 }
 
 function formatHourLabel(hour24: number) {
@@ -72,6 +59,14 @@ export default function CalendarWeekView() {
     weekEnd.setHours(23, 59, 59, 999);
     const today = new Date();
     const { data: events = [] } = useEvents({ startDate: weekStart, endDate: weekEnd });
+    const { data: templates = [] } = useTemplates({ includeHidden: true });
+    const templatesById = useMemo(() => {
+        const mapped = new Map<number, ReturnType<typeof normalizeTemplateFields>>();
+        for (const template of templates) {
+            mapped.set(template.id, normalizeTemplateFields(template.data));
+        }
+        return mapped;
+    }, [templates]);
     const startHour = useMemo(() => {
         if (events.length === 0) return DEFAULT_START_HOUR;
 
@@ -243,7 +238,10 @@ export default function CalendarWeekView() {
                                                     {event.title}
                                                 </p>
                                                 <p className="text-[9px] leading-tight truncate text-stone-600">
-                                                    {getEventDataPreview(event.data)}
+                                                    {buildEventPreview(
+                                                        templatesById.get(event.templateId) ?? [],
+                                                        event.data,
+                                                    )}
                                                 </p>
                                             </div>
                                         ))}

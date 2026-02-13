@@ -2,6 +2,9 @@ import { useEvents } from "@/features/event/hooks/useEvents";
 import { useDeleteEvent } from "@/features/event/hooks/useDeleteEvent";
 import type { Event } from "@/features/event/models/Event";
 import EditEventDialog from "@/features/event/components/EditEventDialog";
+import { useTemplates } from "@/features/template/hooks/useTemplates";
+import { normalizeTemplateFields } from "@/features/template/templateFields";
+import { buildEventPreview } from "@/features/event/eventFieldValues";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
@@ -24,22 +27,6 @@ const TIME_SLOTS = [
     "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
     "6PM", "7PM", "8PM", "9PM", "10PM", "11PM",
 ];
-
-function getEventDataPreview(data: Event["data"]) {
-    if (!Array.isArray(data)) return "No details";
-    if (data.length === 0) return "No details";
-
-    const firstItem = data[0];
-    if (firstItem && typeof firstItem === "object" && !Array.isArray(firstItem)) {
-        const entries = Object.entries(firstItem as Record<string, unknown>);
-        if (entries.length > 0) {
-            const [key, value] = entries[0];
-            return `${key}: ${String(value)}`;
-        }
-    }
-
-    return `${data.length} item${data.length > 1 ? "s" : ""}`;
-}
 
 function parseHour24(timeSlot: string) {
     const parsedHour = Number.parseInt(timeSlot, 10);
@@ -82,6 +69,14 @@ export default function DayDetailPanel() {
     const dayEnd = new Date(selectedDate);
     dayEnd.setHours(23, 59, 59, 999);
     const { data: events = [] } = useEvents({ startDate: dayStart, endDate: dayEnd });
+    const { data: templates = [] } = useTemplates({ includeHidden: true });
+    const templatesById = useMemo(() => {
+        const mapped = new Map<number, ReturnType<typeof normalizeTemplateFields>>();
+        for (const template of templates) {
+            mapped.set(template.id, normalizeTemplateFields(template.data));
+        }
+        return mapped;
+    }, [templates]);
     const eventsByHour = useMemo(() => {
         const grouped = new Map<number, Event[]>();
 
@@ -224,7 +219,10 @@ export default function DayDetailPanel() {
                                                     {event.title}
                                                 </p>
                                                 <p className="text-[9px] leading-tight truncate text-stone-600">
-                                                    {getEventDataPreview(event.data)}
+                                                    {buildEventPreview(
+                                                        templatesById.get(event.templateId) ?? [],
+                                                        event.data,
+                                                    )}
                                                 </p>
                                             </div>
                                         ))}
