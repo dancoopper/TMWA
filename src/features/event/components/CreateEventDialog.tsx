@@ -177,120 +177,122 @@ export default function CreateEventDialog({
                 onOpenChange(nextOpen);
             }}
         >
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] p-0">
+                <DialogHeader className="px-5 pt-4 pb-2">
                     <DialogTitle>Create Event</DialogTitle>
-                    <DialogDescription>
-                        Select a template pill, or add fields below to shape this event.
-                    </DialogDescription>
+                    <DialogDescription>Add details and save.</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-3 py-4">
-                        <div className="flex flex-col gap-1">
-                            <Label htmlFor="title" className="text-[11px] text-gray-500">
-                                Title
-                            </Label>
-                            <Input
-                                id="title"
-                                ref={inputRef}
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="col-span-3 h-8 text-xs"
-                                placeholder={DEFAULT_TITLE}
-                                required
-                                disabled={isSubmitting}
-                                autoFocus
-                                onFocus={(e) => e.target.select()}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="flex flex-col gap-1">
-                                <Label htmlFor="date" className="text-[11px] text-gray-500">
-                                    Date
-                                </Label>
-                                <Input
-                                    id="date"
-                                    type="date"
-                                    value={dateValue}
-                                    onChange={(e) => setDateValue(e.target.value)}
-                                    className="h-8 text-xs"
-                                    required
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <Label htmlFor="time" className="text-[11px] text-gray-500">
-                                    Time
-                                </Label>
-                                <Input
-                                    id="time"
-                                    type="time"
-                                    value={timeValue}
-                                    onChange={(e) => setTimeValue(e.target.value)}
-                                    className="h-8 text-xs"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className="flex flex-wrap gap-2">
-                                {templates.map((template) => (
-                                    <Button
-                                        key={template.id}
-                                        type="button"
-                                        size="sm"
-                                        variant={selectedTemplateId === template.id ? "default" : "outline"}
-                                        className="h-7 text-xs"
-                                        onClick={() => {
-                                            setSelectedTemplateId(template.id);
-                                        }}
+                <form onSubmit={handleSubmit} className="flex max-h-[75vh] flex-col">
+                    <div className="space-y-4 overflow-y-auto px-5 pb-4">
+                        <section className="space-y-3">
+                                <div className="flex flex-col gap-1">
+                                    <Label htmlFor="title" className="text-[11px] text-muted-foreground">
+                                        Title
+                                    </Label>
+                                    <Input
+                                        id="title"
+                                        ref={inputRef}
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="h-8 text-xs"
+                                        placeholder={DEFAULT_TITLE}
+                                        required
                                         disabled={isSubmitting}
-                                    >
-                                        {template.name}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {activeSchema.map((field) => {
-                            const currentValue = eventValues.find((item) => item.id === field.id)?.value;
-
-                            if (field.type === "checkbox") {
-                                return (
-                                    <label key={field.id} className="flex items-center gap-2 text-sm text-stone-700">
-                                        <input
-                                            type="checkbox"
-                                            checked={currentValue === true}
-                                            onChange={(e) => handleFieldValueChange(field.id, e.target.checked)}
+                                        autoFocus
+                                        onFocus={(e) => e.target.select()}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col gap-1">
+                                        <Label htmlFor="date" className="text-[11px] text-muted-foreground">
+                                            Date
+                                        </Label>
+                                        <Input
+                                            id="date"
+                                            type="date"
+                                            value={dateValue}
+                                            onChange={(e) => setDateValue(e.target.value)}
+                                            className="h-8 text-xs"
+                                            required
                                             disabled={isSubmitting}
                                         />
-                                        {field.name}
-                                    </label>
-                                );
-                            }
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <Label htmlFor="time" className="text-[11px] text-muted-foreground">
+                                            Time
+                                        </Label>
+                                        <Input
+                                            id="time"
+                                            type="time"
+                                            value={timeValue}
+                                            onChange={(e) => setTimeValue(e.target.value)}
+                                            className="h-8 text-xs"
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                </div>
+                        </section>
 
-                            if (field.type === "select") {
-                                const options = field.options ?? [];
-                                const hasOptions = options.length > 0;
-                                return (
-                                    <div key={field.id} className="space-y-1">
-                                        <Label className="text-[11px] text-stone-600">{field.name}</Label>
-                                        {hasOptions ? (
-                                            <select
-                                                value={typeof currentValue === "string" ? currentValue : ""}
-                                                onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
-                                                className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-xs"
-                                                disabled={isSubmitting}
-                                            >
-                                                <option value="">Select</option>
-                                                {options.map((option) => (
-                                                    <option key={option} value={option}>
-                                                        {option}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        ) : (
+                        <section className="space-y-3 border-t border-border pt-3">
+                            <div className="space-y-3">
+                                {activeSchema.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        No fields yet. Add one below to capture custom details.
+                                    </p>
+                                ) : null}
+                                {activeSchema.map((field) => {
+                                    const currentValue = eventValues.find((item) => item.id === field.id)?.value;
+
+                                    if (field.type === "checkbox") {
+                                        return (
+                                            <label key={field.id} className="flex items-center gap-2 text-sm text-stone-700">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={currentValue === true}
+                                                    onChange={(e) => handleFieldValueChange(field.id, e.target.checked)}
+                                                    disabled={isSubmitting}
+                                                />
+                                                {field.name}
+                                            </label>
+                                        );
+                                    }
+
+                                    if (field.type === "select") {
+                                        const options = field.options ?? [];
+                                        const hasOptions = options.length > 0;
+                                        return (
+                                            <div key={field.id} className="space-y-1">
+                                                <Label className="text-[11px] text-stone-600">{field.name}</Label>
+                                                {hasOptions ? (
+                                                    <select
+                                                        value={typeof currentValue === "string" ? currentValue : ""}
+                                                        onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
+                                                        className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {options.map((option) => (
+                                                            <option key={option} value={option}>
+                                                                {option}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <Input
+                                                        value={typeof currentValue === "string" ? currentValue : ""}
+                                                        onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
+                                                        placeholder={field.name}
+                                                        className="h-8 text-xs"
+                                                        disabled={isSubmitting}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div key={field.id} className="space-y-1">
+                                            <Label className="text-[11px] text-stone-600">{field.name}</Label>
                                             <Input
                                                 value={typeof currentValue === "string" ? currentValue : ""}
                                                 onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
@@ -298,55 +300,46 @@ export default function CreateEventDialog({
                                                 className="h-8 text-xs"
                                                 disabled={isSubmitting}
                                             />
-                                        )}
-                                    </div>
-                                );
-                            }
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
 
-                            return (
-                                <div key={field.id} className="space-y-1">
-                                    <Label className="text-[11px] text-stone-600">{field.name}</Label>
-                                    <Input
-                                        value={typeof currentValue === "string" ? currentValue : ""}
-                                        onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
-                                        placeholder={field.name}
-                                        className="h-8 text-xs"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                            );
-                        })}
-
-                        <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-1">
-                            <Input
-                                value={newFieldKey}
-                                onChange={(e) => setNewFieldKey(e.target.value)}
-                                placeholder="Field Name"
-                                className="h-8 text-xs"
-                                disabled={isSubmitting}
-                            />
-                            <select
-                                value={newFieldType}
-                                onChange={(e) => setNewFieldType(e.target.value as TemplateFieldType)}
-                                className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
-                                disabled={isSubmitting}
-                            >
-                                <option value="text">Text</option>
-                                <option value="checkbox">Checkbox</option>
-                                <option value="select">Select</option>
-                            </select>
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={handleAddField}
-                                disabled={isSubmitting || !newFieldKey.trim()}
-                            >
-                                +
-                            </Button>
-                        </div>
+                        <section className="space-y-2 border-t border-border pt-3">
+                            <p className="text-[11px] text-muted-foreground">Add Custom Field</p>
+                            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                                <Input
+                                    value={newFieldKey}
+                                    onChange={(e) => setNewFieldKey(e.target.value)}
+                                    placeholder="Field Name"
+                                    className="h-8 text-xs"
+                                    disabled={isSubmitting}
+                                />
+                                <select
+                                    value={newFieldType}
+                                    onChange={(e) => setNewFieldType(e.target.value as TemplateFieldType)}
+                                    className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                                    disabled={isSubmitting}
+                                >
+                                    <option value="text">Text</option>
+                                    <option value="checkbox">Checkbox</option>
+                                    <option value="select">Select</option>
+                                </select>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleAddField}
+                                    disabled={isSubmitting || !newFieldKey.trim()}
+                                >
+                                    +
+                                </Button>
+                            </div>
+                        </section>
                     </div>
-                    <div className="flex justify-end gap-2">
+
+                    <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
                         <Button
                             type="button"
                             size="sm"
