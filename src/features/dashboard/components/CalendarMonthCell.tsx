@@ -10,6 +10,7 @@ interface CalendarMonthCellProps {
     isToday?: boolean;
     eventItems?: MonthCellEventItem[];
     onClick?: () => void;
+    onDoubleClick?: () => void;
     onEventClick?: (eventId: number) => void;
 }
 
@@ -20,6 +21,7 @@ export default function CalendarMonthCell({
     isToday = false,
     eventItems = [],
     onClick,
+    onDoubleClick,
     onEventClick,
 }: CalendarMonthCellProps) {
     const isCurrent = variant === "current";
@@ -29,6 +31,7 @@ export default function CalendarMonthCell({
     return (
         <div
             onClick={isCurrent ? onClick : undefined}
+            onDoubleClick={isCurrent ? onDoubleClick : undefined}
             className={`
                 rounded-2xl p-2.5 flex flex-col transition-all duration-200
                 ${isCurrent
@@ -66,6 +69,9 @@ export default function CalendarMonthCell({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onEventClick?.(event.id);
+                            }}
+                            onDoubleClick={(e) => {
+                                e.stopPropagation();
                             }}
                             className={`
                                 text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-1 py-0.5 border border-transparent transition-colors duration-150
