@@ -44,7 +44,7 @@ export const eventRepository = {
         return toEvent(data);
     },
 
-    async deleteEvent(id: string) {
+    async deleteEvent(id: number) {
         const { error } = await supabase
             .from("events")
             .delete()
