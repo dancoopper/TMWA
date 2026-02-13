@@ -64,7 +64,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function CalendarWeekView() {
-    const { selectedDate, setSelectedDate, selectEvent } = useDashboardStore();
+    const { selectedDate, setSelectedDate, selectEvent, openCreateEventDialog } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
     const weekStart = new Date(weekDates[0]);
     weekStart.setHours(0, 0, 0, 0);
@@ -211,6 +211,8 @@ export default function CalendarWeekView() {
                         >
                             {timeSlots.map((hour) => {
                                 const slotEvents = getSlotEvents(date, hour);
+                                const slotDate = new Date(date);
+                                slotDate.setHours(hour, 0, 0, 0);
 
                                 return (
                                     <div
@@ -218,6 +220,10 @@ export default function CalendarWeekView() {
                                         className="border-b border-stone-300/40 hover:bg-stone-200/50 transition-colors duration-200 cursor-pointer p-1"
                                         style={{
                                             backgroundColor: isToday(date) ? "rgba(31, 33, 40, 0.14)" : "#dad6c8",
+                                        }}
+                                        onClick={() => {
+                                            setSelectedDate(slotDate);
+                                            openCreateEventDialog(slotDate);
                                         }}
                                     >
                                         {slotEvents.slice(0, 1).map((event) => (

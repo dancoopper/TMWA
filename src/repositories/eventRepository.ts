@@ -1,6 +1,17 @@
 import { supabase } from "@/lib/supabase";
 import { type Event } from "@/features/event/models/Event";
 import { toEvent } from "@/features/event/mappers/toEvent";
+import { type Database } from "@/types/database.types";
+
+type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
+
+export type CreateEventInput = {
+    workspaceId: number;
+    templateId: number;
+    title: string;
+    date: Date;
+    data: EventInsert["data"];
+};
 
 export const eventRepository = {
     async getEvents(workspaceId: string) {
@@ -52,10 +63,18 @@ export const eventRepository = {
         if (error) throw error;
     },
 
-    async createEvent(event: Event) {
+    async createEvent(event: CreateEventInput) {
+        const payload: EventInsert = {
+            workspace_id: event.workspaceId,
+            template_id: event.templateId,
+            title: event.title,
+            date: event.date.toISOString(),
+            data: event.data,
+        };
+
         const { data, error } = await supabase
             .from("events")
-            .insert([event])
+            .insert(payload)
             .select()
             .single();
         if (error) throw error;

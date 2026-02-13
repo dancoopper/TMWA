@@ -11,6 +11,8 @@ type DashboardState = {
     selectedEvent: Event | null;
     searchQuery: string;
     selectedWorkspaceId: number | null;
+    createEventDialogOpen: boolean;
+    createEventInitialDate: Date | null;
     toggleLeftSidebar: () => void;
     toggleRightPanel: () => void;
     setCalendarView: (view: CalendarView) => void;
@@ -19,6 +21,8 @@ type DashboardState = {
     clearSelectedEvent: () => void;
     setSearchQuery: (query: string) => void;
     setSelectedWorkspaceId: (workspaceId: number | null) => void;
+    openCreateEventDialog: (date?: Date) => void;
+    closeCreateEventDialog: () => void;
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -29,6 +33,8 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     selectedEvent: null,
     searchQuery: "",
     selectedWorkspaceId: null,
+    createEventDialogOpen: false,
+    createEventInitialDate: null,
 
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarCollapsed: !state.leftSidebarCollapsed })),
@@ -53,4 +59,16 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
     setSelectedWorkspaceId: (workspaceId) =>
         set({ selectedWorkspaceId: workspaceId }),
+
+    openCreateEventDialog: (date) =>
+        set({
+            createEventDialogOpen: true,
+            createEventInitialDate: date ? new Date(date) : null,
+        }),
+
+    closeCreateEventDialog: () =>
+        set({
+            createEventDialogOpen: false,
+            createEventInitialDate: null,
+        }),
 }));

@@ -13,6 +13,7 @@ export default function CalendarHeader() {
         selectedDate,
         setSelectedDate,
         selectedWorkspaceId,
+        openCreateEventDialog,
     } = useDashboardStore();
     const { data: workspaces } = useWorkspaces();
     const selectedWorkspace = workspaces?.find((workspace) => workspace.id === selectedWorkspaceId);
@@ -125,6 +126,7 @@ export default function CalendarHeader() {
                     size="sm"
                     className="gap-1.5 rounded-full text-white transition-all duration-200 text-[11px] h-7 px-3"
                     style={{ backgroundColor: "#8d9b67" }}
+                    onClick={() => openCreateEventDialog(selectedDate)}
                 >
                     <Plus className="w-3 h-3" />
                     Add Event

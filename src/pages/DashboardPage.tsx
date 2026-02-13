@@ -5,10 +5,16 @@ import {
     DayDetailPanel,
     Sidebar,
 } from "@/features/dashboard/components";
+import CreateEventDialog from "@/features/event/components/CreateEventDialog";
 import { useDashboardStore } from "@/stores/dashboardStore";
 
 export default function DashboardPage() {
-    const { calendarView } = useDashboardStore();
+    const {
+        calendarView,
+        createEventDialogOpen,
+        createEventInitialDate,
+        closeCreateEventDialog,
+    } = useDashboardStore();
 
     return (
         <div
@@ -53,6 +59,15 @@ export default function DashboardPage() {
 
             {/* Right Day Detail Panel */}
             <DayDetailPanel />
+            <CreateEventDialog
+                open={createEventDialogOpen}
+                onOpenChange={(open: boolean) => {
+                    if (!open) {
+                        closeCreateEventDialog();
+                    }
+                }}
+                initialDate={createEventInitialDate ?? undefined}
+            />
         </div>
     );
 }

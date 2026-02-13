@@ -22,7 +22,7 @@ function toDayKey(date: Date) {
 }
 
 export default function CalendarGrid() {
-    const { selectedDate, setSelectedDate, selectEvent } = useDashboardStore();
+    const { selectedDate, setSelectedDate, selectEvent, openCreateEventDialog } = useDashboardStore();
 
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -83,6 +83,7 @@ export default function CalendarGrid() {
         if (!isCurrentMonth) return;
         const newDate = new Date(year, month, day);
         setSelectedDate(newDate);
+        openCreateEventDialog(newDate);
     };
 
     return (

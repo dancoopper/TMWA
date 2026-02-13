@@ -73,6 +73,7 @@ export default function DayDetailPanel() {
         selectedEvent,
         selectEvent,
         clearSelectedEvent,
+        openCreateEventDialog,
     } = useDashboardStore();
     const today = new Date();
     const dayStart = new Date(selectedDate);
@@ -199,11 +200,22 @@ export default function DayDetailPanel() {
                                     <div className="w-12 shrink-0 py-2 px-2 text-[10px] text-stone-500 text-right">
                                         {time}
                                     </div>
-                                    <div className="relative flex-1 border-l border-stone-300/60 px-2 py-1.5 cursor-pointer">
+                                    <div
+                                        className="relative flex-1 border-l border-stone-300/60 px-2 py-1.5 cursor-pointer"
+                                        onClick={() => {
+                                            if (slotHour === null) return;
+                                            const slotDate = new Date(selectedDate);
+                                            slotDate.setHours(slotHour, 0, 0, 0);
+                                            openCreateEventDialog(slotDate);
+                                        }}
+                                    >
                                         {slotEvents.slice(0, 2).map((event) => (
                                             <div
                                                 key={event.id}
-                                                onClick={() => selectEvent(event)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    selectEvent(event);
+                                                }}
                                                 className="rounded-sm border border-stone-500/20 bg-stone-200/55 px-1.5 py-1 mb-1 last:mb-0 cursor-pointer transition-all duration-150 hover:bg-stone-300/80 hover:border-stone-600/45 hover:shadow-[inset_0_0_0_1px_rgba(87,83,78,0.35)] hover:-translate-y-px"
                                                 title={event.title}
                                             >
