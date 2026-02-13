@@ -1,6 +1,7 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
 import { useDeleteEvent } from "@/features/event/hooks/useDeleteEvent";
 import type { Event } from "@/features/event/models/Event";
+import EditEventDialog from "@/features/event/components/EditEventDialog";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
@@ -250,14 +251,20 @@ export default function DayDetailPanel() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button
-                                        type="button"
-                                        className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
-                                        aria-label="Edit event"
-                                        title="Edit event"
-                                    >
-                                        <PenLine className="w-3.5 h-3.5 text-stone-600" />
-                                    </button>
+                                    <EditEventDialog
+                                        event={selectedEvent}
+                                        onEventUpdated={selectEvent}
+                                        trigger={
+                                            <button
+                                                type="button"
+                                                className="p-1 rounded-md text-stone-600 hover:text-sky-700 hover:bg-sky-500/20 transition-colors duration-200"
+                                                aria-label="Edit event"
+                                                title="Edit event"
+                                            >
+                                                <PenLine className="w-3.5 h-3.5" />
+                                            </button>
+                                        }
+                                    />
                                     <AlertDialog
                                         open={isDeleteDialogOpen}
                                         onOpenChange={setIsDeleteDialogOpen}
@@ -265,11 +272,11 @@ export default function DayDetailPanel() {
                                         <AlertDialogTrigger asChild>
                                             <button
                                                 type="button"
-                                                className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                                className="p-1 rounded-md text-stone-600 hover:text-rose-700 hover:bg-rose-500/20 transition-colors duration-200"
                                                 aria-label="Delete event"
                                                 title="Delete event"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5 text-stone-600" />
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent size="sm">
@@ -304,11 +311,11 @@ export default function DayDetailPanel() {
                                     <button
                                         type="button"
                                         onClick={clearSelectedEvent}
-                                        className="p-1 rounded-md hover:bg-stone-300/60 transition-colors duration-200"
+                                        className="p-1 rounded-md text-stone-600 hover:text-stone-800 hover:bg-stone-300/60 transition-colors duration-200"
                                         aria-label="Close selected event details"
                                         title="Close"
                                     >
-                                        <X className="w-3.5 h-3.5 text-stone-600" />
+                                        <X className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </div>

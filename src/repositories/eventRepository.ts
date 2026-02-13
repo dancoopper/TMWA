@@ -13,6 +13,11 @@ export type CreateEventInput = {
     data: EventInsert["data"];
 };
 
+export type UpdateEventInput = {
+    title?: string;
+    date?: Date;
+};
+
 export const eventRepository = {
     async getEvents(workspaceId: string) {
         const { data, error } = await supabase
@@ -44,12 +49,15 @@ export const eventRepository = {
         return toEvent(data);
     },
 
-    async updateEvent(id: string, updates: Partial<Event>) {
+    async updateEvent(id: number, updates: UpdateEventInput) {
+        const payload: Database["public"]["Tables"]["events"]["Update"] = {};
+        if (typeof updates.title === "string") payload.title = updates.title;
+        if (updates.date) payload.date = updates.date.toISOString();
+
         const { data, error } = await supabase.from("events")
-            .update({
-                ...updates,
-            })
+            .update(payload)
             .eq("id", id)
+            .select()
             .single();
         if (error) throw error;
         return toEvent(data);
