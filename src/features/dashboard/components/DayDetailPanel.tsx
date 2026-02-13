@@ -4,7 +4,7 @@ import type { Event } from "@/features/event/models/Event";
 import EditEventDialog from "@/features/event/components/EditEventDialog";
 import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
-import { buildEventPreview } from "@/features/event/eventFieldValues";
+import { buildEventPreview, normalizeEventValues } from "@/features/event/eventFieldValues";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
@@ -51,6 +51,44 @@ function isSameDay(a: Date, b: Date) {
         a.getMonth() === b.getMonth() &&
         a.getFullYear() === b.getFullYear()
     );
+}
+
+function formatDetailValue(value: unknown): string {
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (typeof value === "string") return value.trim().length > 0 ? value : "N/A";
+    if (typeof value === "number") return String(value);
+    if (value === null || value === undefined) return "N/A";
+    return String(value);
+}
+
+function buildSelectedEventDetails(
+    event: Event,
+    templatesById: Map<number, ReturnType<typeof normalizeTemplateFields>>,
+) {
+    const templateFields = templatesById.get(event.templateId) ?? [];
+
+    if (templateFields.length > 0) {
+        const normalized = normalizeEventValues(templateFields, event.data);
+        const valueById = new Map(normalized.map((item) => [item.id, item.value]));
+        return templateFields.map((field) => ({
+            label: field.name,
+            value: formatDetailValue(valueById.get(field.id)),
+        }));
+    }
+
+    if (Array.isArray(event.data)) {
+        const details: Array<{ label: string; value: string }> = [];
+        for (const item of event.data) {
+            if (item && typeof item === "object" && !Array.isArray(item)) {
+                for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+                    details.push({ label: key, value: formatDetailValue(value) });
+                }
+            }
+        }
+        return details;
+    }
+
+    return [];
 }
 
 export default function DayDetailPanel() {
@@ -128,6 +166,10 @@ export default function DayDetailPanel() {
             },
         });
     };
+    const selectedEventDetails = useMemo(() => {
+        if (!selectedEvent) return [];
+        return buildSelectedEventDetails(selectedEvent, templatesById);
+    }, [selectedEvent, templatesById]);
 
     return (
         <aside
@@ -238,7 +280,7 @@ export default function DayDetailPanel() {
                     </div>
 
                     {selectedEvent ? (
-                        <div className="h-1/2 border-t border-stone-400/40 px-2 py-2.5">
+                        <div className="h-1/2 border-t border-stone-400/40 px-2 py-2.5 flex flex-col min-h-0">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="text-xs font-semibold text-stone-800 truncate" title={selectedEvent.title}>
@@ -316,6 +358,25 @@ export default function DayDetailPanel() {
                                         <X className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
+                            </div>
+                            <div className="mt-2 space-y-1.5 overflow-y-auto pr-1">
+                                {selectedEventDetails.length > 0 ? (
+                                    selectedEventDetails.map((detail, index) => (
+                                        <div
+                                            key={`${detail.label}-${index}`}
+                                            className="rounded-sm border border-stone-400/35 bg-stone-100/55 px-2 py-1"
+                                        >
+                                            <p className="text-[10px] uppercase tracking-wide text-stone-500 truncate">
+                                                {detail.label}
+                                            </p>
+                                            <p className="text-[11px] text-stone-800 wrap-break-word">
+                                                {detail.value}
+                                            </p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-[11px] text-stone-500">No details available.</p>
+                                )}
                             </div>
                         </div>
                     ) : null}
