@@ -87,7 +87,6 @@ export default function EditWorkspaceDialog({
                             <Button
                                 type="submit"
                                 disabled={isPending}
-                                className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
                             >
                                 {isPending ? "Saving..." : "Save Changes"}
                             </Button>

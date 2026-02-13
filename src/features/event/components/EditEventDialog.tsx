@@ -174,7 +174,7 @@ export default function EditEventDialog({
                                 onChange={(e) => setDateValue(e.target.value)}
                                 required
                                 disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                             />
                         </div>
                         <div className="space-y-2">
@@ -186,7 +186,7 @@ export default function EditEventDialog({
                                 onChange={(e) => setTimeValue(e.target.value)}
                                 required
                                 disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
+                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                             />
                         </div>
                     </div>
@@ -287,7 +287,6 @@ export default function EditEventDialog({
                         <Button
                             type="submit"
                             disabled={isSubmitting || !title.trim()}
-                            className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
                         >
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>

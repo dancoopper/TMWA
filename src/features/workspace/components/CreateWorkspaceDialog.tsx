@@ -95,7 +95,6 @@ export default function CreateWorkspaceDialog({
                         <Button
                             type="submit"
                             disabled={isPending}
-                            className="bg-[#8d9b67] text-white hover:bg-[#7f8d5c]"
                         >
                             {isPending ? "Creating..." : "Create"}
                         </Button>
