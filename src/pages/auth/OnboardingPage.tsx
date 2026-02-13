@@ -25,8 +25,11 @@ export default function OnboardingPage() {
     };
 
     return (
-        <div className="w-full h-screen flex flex-row justify-center items-center">
-            <Card className="w-full max-w-sm mx-auto border-none shadow-none">
+        <div
+            className="w-full h-screen flex flex-row justify-center items-center"
+            style={{ background: "#f0ead6" }}
+        >
+            <Card className="w-full max-w-sm mx-auto border-none shadow-none" style={{ background: "transparent" }}>
                 <CardHeader>
                     <CardTitle className="text-2xl">Complete your profile</CardTitle>
                     <CardDescription>
@@ -44,6 +47,7 @@ export default function OnboardingPage() {
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                                 required
+                                style={{ background: "rgba(180, 180, 180, 0.5)" }}
                             />
                         </div>
 
@@ -55,6 +59,7 @@ export default function OnboardingPage() {
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 required
+                                style={{ background: "rgba(180, 180, 180, 0.5)" }}
                             />
                         </div>
 
@@ -65,11 +70,12 @@ export default function OnboardingPage() {
                                 value={timezone}
                                 onChange={(e) => setTimezone(e.target.value)}
                                 required
+                                style={{ background: "rgba(180, 180, 180, 0.5)" }}
                             />
                         </div>
                     </CardContent>
 
-                    <CardFooter>
+                    <CardFooter className="flex flex-col items-center justify-between space-y-2">
                         <Button
                             type="submit"
                             className="w-full mt-4"
