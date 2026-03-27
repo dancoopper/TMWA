@@ -21,7 +21,6 @@ import {
 const DEFAULT_TITLE = "Untitled";
 const DEFAULT_TIME = "09:00";
 const DEFAULT_FIELD_TYPE: TemplateFieldType = "text";
-
 interface CreateEventDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;

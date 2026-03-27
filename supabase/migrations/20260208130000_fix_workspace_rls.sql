@@ -14,11 +14,9 @@ BEGIN
   );
 END;
 $$;
-
 -- Drop existing policies to recreate them clearly
 DROP POLICY IF EXISTS "Users can view their own workspaces" ON "public"."workspaces";
 DROP POLICY IF EXISTS "Members can view other members of the same workspace" ON "public"."workspace_members";
-
 -- Re-create workspace policies
 
 -- Select: Users can view their own workspaces (where they are owner or member)
@@ -30,7 +28,6 @@ USING (
   OR 
   is_workspace_member(id)
 );
-
 -- Re-create workspace_members policies
 
 -- Select: Members can view other members of the same workspace

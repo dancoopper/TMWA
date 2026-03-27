@@ -65,7 +65,6 @@ export default function CreateWorkspaceDialog({
                                 ref={inputRef}
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="col-span-3"
                                 placeholder="Untitled"
                                 required
                                 disabled={isPending}
