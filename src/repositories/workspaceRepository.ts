@@ -44,9 +44,9 @@ export const workspaceRepository = {
 
         if (error) throw error;
 
-        // Also add the owner as a member
-        await this.addWorkspaceMember(data.id, ownerUserId, true);
-        
+        // Also add the owner as a member with editor role
+        await this.addWorkspaceMember(data.id, ownerUserId, true, "editor", false);
+
         return toWorkspace(data);
     },
 
@@ -71,24 +71,58 @@ export const workspaceRepository = {
         if (error) throw error;
     },
 
-    async getWorkspaceMembers(workspaceId: number): Promise<WorkspaceMember[]> {
+    async getWorkspaceMembers(workspaceId: number): Promise<(WorkspaceMember & { firstName: string | null; lastName: string | null })[]> {
         const { data, error } = await supabase
             .from("workspace_members")
-            .select("*")
+            .select(`
+                *,
+                user_profiles!inner(first_name, last_name)
+            `)
             .eq("workspace_id", workspaceId);
 
         if (error) throw error;
-        return (data || []).map(toWorkspaceMember);
+
+        return (data || []).map((row) => {
+            const profile = row.user_profiles as { first_name: string | null; last_name: string | null } | null;
+            return {
+                ...toWorkspaceMember(row),
+                firstName: profile?.first_name ?? null,
+                lastName: profile?.last_name ?? null,
+            };
+        });
     },
 
-    async addWorkspaceMember(workspaceId: number, userId: string, isOwner: boolean = false): Promise<void> {
+    async addWorkspaceMember(
+        workspaceId: number,
+        userId: string,
+        isOwner: boolean = false,
+        role: "viewer" | "editor" = "viewer",
+        hideEvents: boolean = false,
+    ): Promise<void> {
         const { error } = await supabase
             .from("workspace_members")
             .insert({
                 workspace_id: workspaceId,
                 user_id: userId,
                 is_owner: isOwner,
+                role,
+                hide_events: hideEvents,
             });
+
+        if (error) throw error;
+    },
+
+    async updateWorkspaceMember(
+        memberId: number,
+        updates: { role?: "viewer" | "editor"; hideEvents?: boolean },
+    ): Promise<void> {
+        const { error } = await supabase
+            .from("workspace_members")
+            .update({
+                ...(updates.role !== undefined && { role: updates.role }),
+                ...(updates.hideEvents !== undefined && { hide_events: updates.hideEvents }),
+            })
+            .eq("id", memberId);
 
         if (error) throw error;
     },
@@ -101,5 +135,13 @@ export const workspaceRepository = {
             .eq("user_id", userId);
 
         if (error) throw error;
+    },
+
+    async getUserIdByEmail(email: string): Promise<string | null> {
+        const { data, error } = await supabase
+            .rpc("get_user_id_by_email", { p_email: email });
+
+        if (error) throw error;
+        return data as string | null;
     },
 };
