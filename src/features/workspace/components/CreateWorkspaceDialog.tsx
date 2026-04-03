@@ -64,13 +64,13 @@ export default function CreateWorkspaceDialog({
                                 id="name"
                                 ref={inputRef}
                                 value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                onChange={(ec) => setName(ec.target.value)}
                                 className="col-span-3"
                                 placeholder="Untitled"
                                 required
                                 disabled={isPending}
                                 autoFocus
-                                onFocus={(e) => e.target.select()}
+                                onFocus={(ef) => ef.target.select()}
                             />
                         </div>
                         <div className="flex flex-col gap-1">
