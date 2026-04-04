@@ -9,8 +9,11 @@ export function toWorkspaceMember(row: WorkspaceMemberRow): WorkspaceMember {
         workspaceId: row.workspace_id ?? 0,
         userId: row.user_id ?? '',
         isOwner: row.is_owner,
+        role: row.role as "viewer" | "editor",
+        hideEvents: row.hide_events,
         createdAt: new Date(row.created_at),
     };
 
     return WorkspaceMemberSchema.parse(mappedData);
 }
+
