@@ -28,12 +28,15 @@ import {
 import { toast } from "sonner";
 
 interface EditEventDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
     trigger: React.ReactNode;
     event: Event;
     onEventUpdated?: (event: Event) => void;
 }
 
 const DEFAULT_FIELD_TYPE: TemplateFieldType = "text";
+const HOUR_MS = 3_600_000;
 
 function toDateInputValue(date: Date) {
     const year = date.getFullYear();
@@ -49,11 +52,12 @@ function toTimeInputValue(date: Date) {
 }
 
 export default function EditEventDialog({
+    open,
+    onOpenChange,
     trigger,
     event,
     onEventUpdated,
 }: EditEventDialogProps) {
-    const [isOpen, setIsOpen] = useState(false);
     const [title, setTitle] = useState(event.title);
     const [startDateValue, setStartDateValue] = useState(toDateInputValue(event.start));
     const [startTimeValue, setStartTimeValue] = useState(toTimeInputValue(event.start));
@@ -80,6 +84,23 @@ export default function EditEventDialog({
         [templates, event.templateId],
     );
     const isSubmitting = isPending || isCreateTemplatePending || isUpdateTemplatePending;
+
+    const bumpEndByHours = (deltaHours: number) => {
+        const start = new Date(`${startDateValue}T${startTimeValue}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue}:00`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+        const next = new Date(end.getTime() + deltaHours * HOUR_MS);
+        if (next.getTime() <= start.getTime()) return;
+        setEndDateValue(toDateInputValue(next));
+        setEndTimeValue(toTimeInputValue(next));
+    };
+
+    const canShrinkEndByOneHour = useMemo(() => {
+        const start = new Date(`${startDateValue}T${startTimeValue}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue}:00`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+        return end.getTime() - start.getTime() > HOUR_MS;
+    }, [startDateValue, startTimeValue, endDateValue, endTimeValue]);
 
     useEffect(() => {
         const nextSchema = normalizeTemplateFields(currentTemplate?.data ?? []);
@@ -136,7 +157,7 @@ export default function EditEventDialog({
             colorKey,
         });
         onEventUpdated?.(updatedEvent);
-        setIsOpen(false);
+        onOpenChange(false);
     };
 
     const updateDetailValue = (fieldId: string, value: EventFieldValue["value"]) => {
@@ -161,7 +182,7 @@ export default function EditEventDialog({
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px] border-stone-400/50 bg-[#e7e2d4] text-stone-800">
                 <DialogHeader>
@@ -229,17 +250,37 @@ export default function EditEventDialog({
                                     className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 min-w-0">
                                 <Label htmlFor="edit-end-time" className="text-stone-700">Time</Label>
-                                <Input
-                                    id="edit-end-time"
-                                    type="time"
-                                    value={endTimeValue}
-                                    onChange={(e) => setEndTimeValue(e.target.value)}
-                                    required
-                                    disabled={isSubmitting}
-                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                                />
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        disabled={isSubmitting || !canShrinkEndByOneHour}
+                                        aria-label="End one hour earlier"
+                                        onClick={() => bumpEndByHours(-1)}
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        -
+                                    </button>
+                                    <Input
+                                        id="edit-end-time"
+                                        type="time"
+                                        value={endTimeValue}
+                                        onChange={(e) => setEndTimeValue(e.target.value)}
+                                        required
+                                        disabled={isSubmitting}
+                                        className="min-w-0 flex-1 border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25 [&::-webkit-calendar-picker-indicator]:hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        disabled={isSubmitting}
+                                        aria-label="End one hour later"
+                                        onClick={() => bumpEndByHours(1)}
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -331,7 +372,7 @@ export default function EditEventDialog({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => onOpenChange(false)}
                             disabled={isSubmitting}
                             className="border-stone-500/50 bg-stone-200/60 text-stone-700 hover:bg-stone-300/70 hover:text-stone-800"
                         >

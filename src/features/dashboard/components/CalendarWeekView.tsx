@@ -49,7 +49,13 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function CalendarWeekView() {
-    const { selectedDate, setSelectedDate, selectEvent, openCreateEventDialog } = useDashboardStore();
+    const {
+        selectedDate,
+        setSelectedDate,
+        selectEvent,
+        openCreateEventDialog,
+        openEditEventDialog,
+    } = useDashboardStore();
     const weekDates = getWeekDates(selectedDate);
     const weekStart = new Date(weekDates[0]);
     weekStart.setHours(0, 0, 0, 0);
@@ -292,6 +298,10 @@ export default function CalendarWeekView() {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     selectEvent(ev);
+                                                }}
+                                                onDoubleClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openEditEventDialog(ev);
                                                 }}
                                                 className={`
                                                     pointer-events-auto absolute flex flex-col overflow-hidden rounded-md border border-solid px-1 py-0.5 text-left shadow-sm cursor-pointer

@@ -111,6 +111,9 @@ export default function DayDetailPanel() {
         selectEvent,
         clearSelectedEvent,
         openCreateEventDialog,
+        editEventDialogOpen,
+        setEditEventDialogOpen,
+        openEditEventDialog,
     } = useDashboardStore();
     const today = new Date();
     const dayStart = new Date(selectedDate);
@@ -323,6 +326,10 @@ export default function DayDetailPanel() {
                                                 e.stopPropagation();
                                                 selectEvent(ev);
                                             }}
+                                            onDoubleClick={(e) => {
+                                                e.stopPropagation();
+                                                openEditEventDialog(ev);
+                                            }}
                                             className={`
                                                 pointer-events-auto absolute flex flex-col overflow-hidden rounded-md border border-solid px-1 py-0.5 text-left shadow-sm cursor-pointer
                                                 transition-[filter] hover:brightness-95
@@ -376,6 +383,8 @@ export default function DayDetailPanel() {
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <EditEventDialog
+                                        open={editEventDialogOpen}
+                                        onOpenChange={setEditEventDialogOpen}
                                         event={selectedEvent}
                                         onEventUpdated={selectEvent}
                                         trigger={

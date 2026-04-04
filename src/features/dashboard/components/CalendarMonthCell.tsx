@@ -16,6 +16,7 @@ interface CalendarMonthCellProps {
     onClick?: () => void;
     onDoubleClick?: () => void;
     onEventClick?: (eventId: number) => void;
+    onEventDoubleClick?: (eventId: number) => void;
 }
 
 export default function CalendarMonthCell({
@@ -27,6 +28,7 @@ export default function CalendarMonthCell({
     onClick,
     onDoubleClick,
     onEventClick,
+    onEventDoubleClick,
 }: CalendarMonthCellProps) {
     const isCurrent = variant === "current";
     const visibleEvents = eventItems.slice(0, 2);
@@ -76,6 +78,7 @@ export default function CalendarMonthCell({
                             }}
                             onDoubleClick={(e) => {
                                 e.stopPropagation();
+                                onEventDoubleClick?.(event.id);
                             }}
                             className={`
                                 text-[10px] leading-tight truncate flex items-center gap-1 cursor-pointer rounded-sm px-1 py-0.5 border border-transparent transition-colors duration-150

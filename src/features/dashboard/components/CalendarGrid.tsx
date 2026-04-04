@@ -31,6 +31,7 @@ export default function CalendarGrid() {
         rightPanelCollapsed,
         toggleRightPanel,
         openCreateEventDialog,
+        openEditEventDialog,
     } = useDashboardStore();
 
     const year = selectedDate.getFullYear();
@@ -77,6 +78,11 @@ export default function CalendarGrid() {
     }, [events]);
 
     const getDayEvents = (date: Date) => eventsByDay.get(toDayKey(date)) ?? [];
+
+    const handleEventDoubleClick = (date: Date, eventId: number) => {
+        const ev = getDayEvents(date).find((e) => e.id === eventId);
+        if (ev) openEditEventDialog(ev);
+    };
 
     const isSelected = (day: number) => {
         return (
@@ -142,6 +148,8 @@ export default function CalendarGrid() {
                                 );
                                 if (event) selectEvent(event);
                             }}
+                            onEventDoubleClick={(eventId) =>
+                                handleEventDoubleClick(new Date(year, month - 1, day), eventId)}
                     />
                 ))}
 
@@ -165,6 +173,8 @@ export default function CalendarGrid() {
                                 );
                                 if (event) selectEvent(event);
                             }}
+                            onEventDoubleClick={(eventId) =>
+                                handleEventDoubleClick(new Date(year, month, day), eventId)}
                         />
                     );
                 })}
@@ -181,6 +191,8 @@ export default function CalendarGrid() {
                                 );
                                 if (event) selectEvent(event);
                             }}
+                            onEventDoubleClick={(eventId) =>
+                                handleEventDoubleClick(new Date(year, month + 1, day), eventId)}
                     />
                 ))}
             </div>

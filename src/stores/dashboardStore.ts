@@ -20,6 +20,7 @@ type DashboardState = {
     createEventDialogOpen: boolean;
     createEventInitialStart: Date | null;
     createEventInitialEnd: Date | null;
+    editEventDialogOpen: boolean;
     toggleLeftSidebar: () => void;
     toggleRightPanel: () => void;
     setMainView: (view: MainView) => void;
@@ -32,6 +33,8 @@ type DashboardState = {
     setSelectedWorkspaceId: (workspaceId: number | null) => void;
     openCreateEventDialog: (options?: { start?: Date; end?: Date }) => void;
     closeCreateEventDialog: () => void;
+    setEditEventDialogOpen: (open: boolean) => void;
+    openEditEventDialog: (event: Event) => void;
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -47,6 +50,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     createEventDialogOpen: false,
     createEventInitialStart: null,
     createEventInitialEnd: null,
+    editEventDialogOpen: false,
 
     toggleLeftSidebar: () =>
         set((state) => ({ leftSidebarCollapsed: !state.leftSidebarCollapsed })),
@@ -67,9 +71,10 @@ export const useDashboardStore = create<DashboardState>((set) => ({
             selectedEvent: event,
             selectedDate: event.start,
             rightPanelCollapsed: false,
+            editEventDialogOpen: false,
         }),
 
-    clearSelectedEvent: () => set({ selectedEvent: null }),
+    clearSelectedEvent: () => set({ selectedEvent: null, editEventDialogOpen: false }),
 
     setSearchQuery: (query) => set({ searchQuery: query }),
 
@@ -92,5 +97,15 @@ export const useDashboardStore = create<DashboardState>((set) => ({
             createEventDialogOpen: false,
             createEventInitialStart: null,
             createEventInitialEnd: null,
+        }),
+
+    setEditEventDialogOpen: (open) => set({ editEventDialogOpen: open }),
+
+    openEditEventDialog: (event) =>
+        set({
+            selectedEvent: event,
+            selectedDate: event.start,
+            rightPanelCollapsed: false,
+            editEventDialogOpen: true,
         }),
 }));

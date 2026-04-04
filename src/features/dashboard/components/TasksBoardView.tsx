@@ -33,7 +33,7 @@ function buildColumnOrder(events: Event[], templatesById: Map<number, ReturnType
 export default function TasksBoardView() {
     const { data: events = [], isLoading } = useTasksEvents();
     const { data: templates = [] } = useTemplates({ includeHidden: true });
-    const { searchQuery, selectEvent, selectedWorkspaceId } = useDashboardStore();
+    const { searchQuery, selectEvent, selectedWorkspaceId, openEditEventDialog } = useDashboardStore();
 
     const templatesById = useMemo(() => {
         const m = new Map<number, ReturnType<typeof normalizeTemplateFields>>();
@@ -114,6 +114,10 @@ export default function TasksBoardView() {
                                         <button
                                             type="button"
                                             onClick={() => selectEvent(ev)}
+                                            onDoubleClick={(e) => {
+                                                e.preventDefault();
+                                                openEditEventDialog(ev);
+                                            }}
                                             className="w-full text-left rounded-md border border-stone-400/35 bg-[#f3f0e8] pl-2 pr-2.5 py-2 hover:border-stone-500/50 hover:bg-[#ebe6dc] transition-colors shadow-sm border-l-[3px]"
                                             style={{
                                                 borderLeftColor:

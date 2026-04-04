@@ -53,7 +53,7 @@ function formatEventWhen(d: Date): string {
 export default function TasksListView() {
     const { data: events = [], isLoading } = useTasksEvents();
     const { data: templates = [] } = useTemplates({ includeHidden: true });
-    const { searchQuery, selectEvent, selectedWorkspaceId } = useDashboardStore();
+    const { searchQuery, selectEvent, selectedWorkspaceId, openEditEventDialog } = useDashboardStore();
 
     const templatesById = useMemo(() => {
         const m = new Map<number, ReturnType<typeof normalizeTemplateFields>>();
@@ -128,6 +128,10 @@ export default function TasksListView() {
                                             <button
                                                 type="button"
                                                 onClick={() => selectEvent(ev)}
+                                                onDoubleClick={(e) => {
+                                                    e.preventDefault();
+                                                    openEditEventDialog(ev);
+                                                }}
                                                 className="w-full flex items-start gap-3 text-left pl-2.5 pr-3 py-2.5 hover:bg-stone-300/40 transition-colors border-l-[3px]"
                                                 style={{
                                                     borderLeftColor:
