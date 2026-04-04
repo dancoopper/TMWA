@@ -71,8 +71,6 @@ export function useFindATime(shareId: string | undefined) {
                     );
 
                     if (blockedByEvent) {
-                        // Skip — slot is occupied by an existing event
-                        cursor.setDate(cursor.getDate()); // no-op, continuation
                         continue;
                     }
 
