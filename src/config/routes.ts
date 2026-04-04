@@ -6,5 +6,6 @@ export const ROUTES = {
     ONBOARDING: "/onboarding",
     DASHBOARD: "/dashboard",
     SETTINGS: "/settings",
+    AVAILABILITY: "/availability/:shareId",
 } as const;
 
