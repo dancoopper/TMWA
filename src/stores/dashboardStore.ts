@@ -78,13 +78,12 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
     openCreateEventDialog: (options) => {
         const start = options?.start ? new Date(options.start) : new Date();
-        const end = options?.end
-            ? new Date(options.end)
-            : new Date(start.getTime() + 3_600_000);
         set({
             createEventDialogOpen: true,
             createEventInitialStart: start,
-            createEventInitialEnd: end,
+            // Only pass end when the caller set it (e.g. drag range). Otherwise the dialog
+            // derives end from effective start (midnight → default morning time + 1h).
+            createEventInitialEnd: options?.end != null ? new Date(options.end) : null,
         });
     },
 

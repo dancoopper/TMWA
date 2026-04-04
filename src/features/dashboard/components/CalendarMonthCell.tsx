@@ -1,6 +1,10 @@
+import type { EventColorKey } from "@/features/event/models/Event";
+import { EVENT_PALETTE, normalizeEventColorKey } from "@/features/event/eventColors";
+
 type MonthCellEventItem = {
     id: number;
     title: string;
+    colorKey?: EventColorKey;
 };
 
 interface CalendarMonthCellProps {
@@ -85,7 +89,14 @@ export default function CalendarMonthCell({
                             `}
                             title={event.title}
                         >
-                            <span className="text-[9px] leading-none">•</span>
+                            <span
+                                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                                style={{
+                                    backgroundColor:
+                                        EVENT_PALETTE[normalizeEventColorKey(event.colorKey)].dot,
+                                }}
+                                aria-hidden
+                            />
                             <span className="truncate">{event.title}</span>
                         </p>
                     ))}

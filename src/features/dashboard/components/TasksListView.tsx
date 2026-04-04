@@ -5,6 +5,7 @@ import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { taskMatchesSearch } from "@/features/event/taskBoardUtils";
 import type { Event } from "@/features/event/models/Event";
+import { EVENT_PALETTE, normalizeEventColorKey } from "@/features/event/eventColors";
 import { ChevronRight } from "lucide-react";
 
 type GroupId = "overdue" | "today" | "soon" | "later";
@@ -127,7 +128,11 @@ export default function TasksListView() {
                                             <button
                                                 type="button"
                                                 onClick={() => selectEvent(ev)}
-                                                className="w-full flex items-start gap-3 text-left px-3 py-2.5 hover:bg-stone-300/40 transition-colors"
+                                                className="w-full flex items-start gap-3 text-left pl-2.5 pr-3 py-2.5 hover:bg-stone-300/40 transition-colors border-l-[3px]"
+                                                style={{
+                                                    borderLeftColor:
+                                                        EVENT_PALETTE[normalizeEventColorKey(ev.colorKey)].dot,
+                                                }}
                                             >
                                                 <ChevronRight className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
                                                 <div className="min-w-0 flex-1">

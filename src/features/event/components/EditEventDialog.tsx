@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Event } from "@/features/event/models/Event";
+import type { Event, EventColorKey } from "@/features/event/models/Event";
+import { EventColorPicker } from "./EventColorPicker";
 import { useUpdateEvent } from "@/features/event/hooks/useUpdateEvent";
 import { useTemplates } from "@/features/template/hooks/useTemplates";
 import {
@@ -62,6 +63,7 @@ export default function EditEventDialog({
     const [detailValues, setDetailValues] = useState<EventFieldValue[]>([]);
     const [newFieldKey, setNewFieldKey] = useState("");
     const [newFieldType, setNewFieldType] = useState<TemplateFieldType>(DEFAULT_FIELD_TYPE);
+    const [colorKey, setColorKey] = useState<EventColorKey>(event.colorKey);
 
     const { mutateAsync: updateEventAsync, isPending } = useUpdateEvent();
     const {
@@ -90,6 +92,7 @@ export default function EditEventDialog({
         setDetailValues(normalizeEventValues(nextSchema, event.data));
         setNewFieldKey("");
         setNewFieldType(DEFAULT_FIELD_TYPE);
+        setColorKey(event.colorKey);
     }, [event, event.data, currentTemplate?.data]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -130,6 +133,7 @@ export default function EditEventDialog({
             end,
             templateId: nextTemplateId,
             data: normalizedValues,
+            colorKey,
         });
         onEventUpdated?.(updatedEvent);
         setIsOpen(false);
@@ -175,6 +179,12 @@ export default function EditEventDialog({
                             className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                         />
                     </div>
+                    <EventColorPicker
+                        id="edit-event-color"
+                        value={colorKey}
+                        onChange={setColorKey}
+                        disabled={isSubmitting}
+                    />
                     <div className="space-y-2">
                         <p className="text-[10px] font-semibold uppercase text-stone-500">Starts</p>
                         <div className="grid grid-cols-2 gap-3">

@@ -9,6 +9,7 @@ import {
     taskMatchesSearch,
 } from "@/features/event/taskBoardUtils";
 import type { Event } from "@/features/event/models/Event";
+import { EVENT_PALETTE, normalizeEventColorKey } from "@/features/event/eventColors";
 
 function buildColumnOrder(events: Event[], templatesById: Map<number, ReturnType<typeof normalizeTemplateFields>>): string[] {
     const seen = new Set<string>();
@@ -113,7 +114,11 @@ export default function TasksBoardView() {
                                         <button
                                             type="button"
                                             onClick={() => selectEvent(ev)}
-                                            className="w-full text-left rounded-md border border-stone-400/35 bg-[#f3f0e8] px-2.5 py-2 hover:border-stone-500/50 hover:bg-[#ebe6dc] transition-colors shadow-sm"
+                                            className="w-full text-left rounded-md border border-stone-400/35 bg-[#f3f0e8] pl-2 pr-2.5 py-2 hover:border-stone-500/50 hover:bg-[#ebe6dc] transition-colors shadow-sm border-l-[3px]"
+                                            style={{
+                                                borderLeftColor:
+                                                    EVENT_PALETTE[normalizeEventColorKey(ev.colorKey)].dot,
+                                            }}
                                         >
                                             <p className="text-xs font-medium text-stone-800 line-clamp-2">
                                                 {ev.title}

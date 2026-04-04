@@ -6,8 +6,15 @@ import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { buildEventPreview, normalizeEventValues } from "@/features/event/eventFieldValues";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { eventOverlapsHour, formatEventTimeRange } from "@/features/event/eventTimeRange";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { EVENT_PALETTE, eventCardStyle, normalizeEventColorKey } from "@/features/event/eventColors";
+import {
+    addDays,
+    assignEventLanes,
+    eventSegmentInWindow,
+    formatEventTimeRange,
+    startOfDay,
+} from "@/features/event/eventTimeRange";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
 import {
     AlertDialog,
@@ -28,6 +35,9 @@ const TIME_SLOTS = [
     "12PM", "1PM", "2PM", "3PM", "4PM", "5PM",
     "6PM", "7PM", "8PM", "9PM", "10PM", "11PM",
 ];
+
+const DAY_ROW_PX = 40;
+const DAY_GRID_HEIGHT = TIME_SLOTS.length * DAY_ROW_PX;
 
 function parseHour24(timeSlot: string) {
     const parsedHour = Number.parseInt(timeSlot, 10);
@@ -116,11 +126,34 @@ export default function DayDetailPanel() {
         }
         return mapped;
     }, [templates]);
-    const getSlotEvents = (timeSlot: string) => {
-        const hour24 = parseHour24(timeSlot);
-        if (hour24 === null) return [];
-        return events.filter((ev) => eventOverlapsHour(ev, selectedDate, hour24));
+    type DayLayout = {
+        ev: Event;
+        topPct: number;
+        heightPct: number;
+        lane: number;
+        laneCount: number;
     };
+
+    const dayEventLayouts = useMemo(() => {
+        const ds = startOfDay(selectedDate);
+        const de = addDays(ds, 1);
+        const list = events.filter((ev) => ev.end > ds && ev.start < de);
+        if (list.length === 0) return [];
+        const { laneById, laneCount } = assignEventLanes(list);
+        const out: DayLayout[] = [];
+        for (const ev of list) {
+            const seg = eventSegmentInWindow(ev, ds, de);
+            if (!seg) continue;
+            out.push({
+                ev,
+                topPct: seg.topPct,
+                heightPct: seg.heightPct,
+                lane: laneById.get(ev.id) ?? 0,
+                laneCount,
+            });
+        }
+        return out;
+    }, [events, selectedDate]);
 
     const dragRef = useRef<{ anchorHour: number } | null>(null);
     const rangeRef = useRef<{ min: number; max: number } | null>(null);
@@ -214,97 +247,126 @@ export default function DayDetailPanel() {
             {!rightPanelCollapsed && (
                 <div className="flex-1 flex flex-col min-h-0">
                     <div className={selectedEvent ? "h-1/2 overflow-y-auto" : "flex-1 overflow-y-auto"}>
-                        {TIME_SLOTS.map((time) => {
-                            const slotEvents = getSlotEvents(time);
-                            const slotHour = parseHour24(time);
-                            const showCurrentTimeLine =
-                                showCurrentDayIndicator && slotHour !== null && slotHour === currentHour;
-                            const inDrag =
-                                dragHighlight !== null &&
-                                slotHour !== null &&
-                                slotHour >= dragHighlight.min &&
-                                slotHour <= dragHighlight.max;
+                        <div className="relative" style={{ minHeight: DAY_GRID_HEIGHT }}>
+                            <div
+                                className="grid"
+                                style={{
+                                    gridTemplateColumns: "48px 1fr",
+                                    gridTemplateRows: `repeat(${TIME_SLOTS.length}, ${DAY_ROW_PX}px)`,
+                                }}
+                            >
+                                {TIME_SLOTS.map((time) => {
+                                    const slotHour = parseHour24(time);
+                                    const inDrag =
+                                        dragHighlight !== null &&
+                                        slotHour !== null &&
+                                        slotHour >= dragHighlight.min &&
+                                        slotHour <= dragHighlight.max;
 
-                            return (
-                                <div
-                                    key={time}
-                                    className="relative flex border-b border-stone-400/40 min-h-[40px] hover:bg-[#1f2128]/15 transition-colors duration-200"
-                                >
-                                    {showCurrentTimeLine ? (
-                                        <div
-                                            className="pointer-events-none absolute left-0 right-0 z-20"
-                                            style={{ top: `${(currentMinute / 60) * 100}%` }}
-                                        >
-                                            <div className="absolute left-0 -translate-y-1/2 rounded-sm bg-rose-600 px-1 py-0.5 text-[9px] font-semibold leading-none text-white">
-                                                {currentTimeLabel}
+                                    return (
+                                        <Fragment key={time}>
+                                            <div className="border-b border-stone-400/40 px-1 py-1 text-[10px] text-stone-500 text-right leading-tight">
+                                                {time}
                                             </div>
-                                            <div className="border-t border-rose-500/85" />
-                                        </div>
-                                    ) : null}
-                                    <div className="w-12 shrink-0 py-2 px-2 text-[10px] text-stone-500 text-right">
-                                        {time}
-                                    </div>
-                                    <div
-                                        className={`
-                                            relative flex-1 border-l border-stone-400/40 px-2 py-1.5 cursor-pointer
-                                            hover:bg-[#1f2128]/15 transition-colors duration-200 select-none touch-none
-                                            ${inDrag ? "bg-sky-500/20" : ""}
-                                        `}
-                                        onPointerDown={(e) => {
-                                            if (slotHour === null) return;
-                                            e.currentTarget.setPointerCapture(e.pointerId);
-                                            dragRef.current = { anchorHour: slotHour };
-                                            rangeRef.current = { min: slotHour, max: slotHour };
-                                            setDragHighlight({ min: slotHour, max: slotHour });
-                                        }}
-                                        onPointerEnter={() => {
-                                            if (!dragRef.current || slotHour === null) return;
-                                            const ah = dragRef.current.anchorHour;
-                                            const r = {
-                                                min: Math.min(ah, slotHour),
-                                                max: Math.max(ah, slotHour),
-                                            };
-                                            rangeRef.current = r;
-                                            setDragHighlight(r);
-                                        }}
-                                    >
-                                        {slotEvents.slice(0, 2).map((event) => (
                                             <div
-                                                key={event.id}
-                                                onPointerDown={(e) => e.stopPropagation()}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    selectEvent(event);
+                                                className={`
+                                                    border-b border-l border-stone-400/40 cursor-pointer select-none touch-none
+                                                    hover:bg-[#1f2128]/15 transition-colors duration-200
+                                                    ${inDrag ? "bg-sky-500/20" : ""}
+                                                `}
+                                                onPointerDown={(e) => {
+                                                    if (slotHour === null) return;
+                                                    e.currentTarget.setPointerCapture(e.pointerId);
+                                                    dragRef.current = { anchorHour: slotHour };
+                                                    rangeRef.current = { min: slotHour, max: slotHour };
+                                                    setDragHighlight({ min: slotHour, max: slotHour });
                                                 }}
-                                                className="rounded-sm border border-stone-500/20 bg-stone-200/55 px-1.5 py-1 mb-1 last:mb-0 cursor-pointer transition-all duration-150 hover:bg-stone-300/80 hover:border-stone-600/45 hover:shadow-[inset_0_0_0_1px_rgba(87,83,78,0.35)] hover:-translate-y-px"
-                                                title={event.title}
+                                                onPointerEnter={() => {
+                                                    if (!dragRef.current || slotHour === null) return;
+                                                    const ah = dragRef.current.anchorHour;
+                                                    const r = {
+                                                        min: Math.min(ah, slotHour),
+                                                        max: Math.max(ah, slotHour),
+                                                    };
+                                                    rangeRef.current = r;
+                                                    setDragHighlight(r);
+                                                }}
+                                            />
+                                        </Fragment>
+                                    );
+                                })}
+                            </div>
+                            {showCurrentDayIndicator ? (
+                                <div
+                                    className="pointer-events-none absolute left-12 right-0 z-20"
+                                    style={{
+                                        top: `${((currentHour + currentMinute / 60) / 24) * 100}%`,
+                                    }}
+                                >
+                                    <div className="absolute left-0 -translate-y-1/2 rounded-sm bg-rose-600 px-1 py-0.5 text-[9px] font-semibold leading-none text-white">
+                                        {currentTimeLabel}
+                                    </div>
+                                    <div className="border-t border-rose-500/85" />
+                                </div>
+                            ) : null}
+                            <div
+                                className="pointer-events-none absolute left-12 right-0 top-0 z-10"
+                                style={{ height: DAY_GRID_HEIGHT }}
+                            >
+                                {dayEventLayouts.map(({ ev, topPct, heightPct, lane, laneCount }) => {
+                                    const narrow = heightPct < 3.5;
+                                    return (
+                                        <div
+                                            key={ev.id}
+                                            onPointerDown={(e) => e.stopPropagation()}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                selectEvent(ev);
+                                            }}
+                                            className={`
+                                                pointer-events-auto absolute flex flex-col overflow-hidden rounded-md border border-solid px-1 py-0.5 text-left shadow-sm cursor-pointer
+                                                transition-[filter] hover:brightness-95
+                                            `}
+                                            style={{
+                                                ...eventCardStyle(ev.colorKey),
+                                                top: `${topPct}%`,
+                                                height: `${heightPct}%`,
+                                                left: `calc(${lane} * (100% / ${laneCount}) + 1px)`,
+                                                width: `calc(100% / ${laneCount} - 2px)`,
+                                                minHeight: narrow ? 4 : undefined,
+                                            }}
+                                            title={ev.title}
+                                        >
+                                            <p
+                                                className={`truncate font-medium ${narrow ? "text-[9px] leading-none" : "text-[10px] leading-tight"}`}
                                             >
-                                                <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">
-                                                    {event.title}
-                                                </p>
-                                                <p className="text-[9px] leading-tight truncate text-stone-600">
+                                                {ev.title}
+                                            </p>
+                                            {!narrow ? (
+                                                <p className="text-[9px] leading-tight truncate mt-0.5 opacity-80">
                                                     {buildEventPreview(
-                                                        templatesById.get(event.templateId) ?? [],
-                                                        event.data,
+                                                        templatesById.get(ev.templateId) ?? [],
+                                                        ev.data,
                                                     )}
                                                 </p>
-                                            </div>
-                                        ))}
-                                        {slotEvents.length > 2 ? (
-                                            <p className="text-[10px] leading-tight text-stone-500">
-                                                +{slotEvents.length - 2}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
 
                     {selectedEvent ? (
                         <div className="h-1/2 border-t border-stone-400/40 px-2 py-2.5 flex flex-col min-h-0">
                             <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0">
+                                <div
+                                    className="min-w-0 border-l-[3px] pl-2 -ml-0.5"
+                                    style={{
+                                        borderLeftColor:
+                                            EVENT_PALETTE[normalizeEventColorKey(selectedEvent.colorKey)].dot,
+                                    }}
+                                >
                                     <p className="text-xs font-semibold text-stone-800 truncate" title={selectedEvent.title}>
                                         {selectedEvent.title}
                                     </p>

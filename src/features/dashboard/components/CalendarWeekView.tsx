@@ -3,7 +3,12 @@ import { buildEventPreview } from "@/features/event/eventFieldValues";
 import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { eventOverlapsHour } from "@/features/event/eventTimeRange";
+import {
+    assignEventLanes,
+    eventSegmentInWindow,
+} from "@/features/event/eventTimeRange";
+import type { Event } from "@/features/event/models/Event";
+import { eventCardStyle } from "@/features/event/eventColors";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -76,8 +81,38 @@ export default function CalendarWeekView() {
         [timeSlots.length]
     );
 
-    const getSlotEvents = (date: Date, hour: number) =>
-        events.filter((ev) => eventOverlapsHour(ev, date, hour));
+    type ColumnLayout = {
+        ev: Event;
+        topPct: number;
+        heightPct: number;
+        lane: number;
+        laneCount: number;
+    };
+
+    const weekColumnLayouts = useMemo(() => {
+        return weekDates.map((date): ColumnLayout[] => {
+            const T0 = new Date(date);
+            T0.setHours(startHour, 0, 0, 0);
+            const T1 = new Date(T0);
+            T1.setHours(startHour + timeSlots.length, 0, 0, 0);
+            const list = events.filter((ev) => ev.end > T0 && ev.start < T1);
+            if (list.length === 0) return [];
+            const { laneById, laneCount } = assignEventLanes(list);
+            const out: ColumnLayout[] = [];
+            for (const ev of list) {
+                const seg = eventSegmentInWindow(ev, T0, T1);
+                if (!seg) continue;
+                out.push({
+                    ev,
+                    topPct: seg.topPct,
+                    heightPct: seg.heightPct,
+                    lane: laneById.get(ev.id) ?? 0,
+                    laneCount,
+                });
+            }
+            return out;
+        });
+    }, [weekDates, events, startHour, timeSlots.length]);
 
     const weekDatesRef = useRef(weekDates);
     weekDatesRef.current = weekDates;
@@ -202,75 +237,94 @@ export default function CalendarWeekView() {
                     {weekDates.map((date, dayIdx) => (
                         <div
                             key={dayIdx}
-                            className="rounded-2xl overflow-hidden grid"
-                            style={{ gridTemplateRows: rowTemplate }}
+                            className="relative min-h-0 h-full rounded-2xl overflow-hidden border border-stone-400/25"
                         >
-                            {timeSlots.map((hour) => {
-                                const slotEvents = getSlotEvents(date, hour);
-                                const inDrag =
-                                    weekDrag !== null &&
-                                    weekDrag.dayIdx === dayIdx &&
-                                    hour >= weekDrag.min &&
-                                    hour <= weekDrag.max;
+                            <div
+                                className="grid h-full min-h-0"
+                                style={{ gridTemplateRows: rowTemplate }}
+                            >
+                                {timeSlots.map((hour) => {
+                                    const inDrag =
+                                        weekDrag !== null &&
+                                        weekDrag.dayIdx === dayIdx &&
+                                        hour >= weekDrag.min &&
+                                        hour <= weekDrag.max;
 
-                                return (
-                                    <div
-                                        key={`${dayIdx}-${hour}`}
-                                        className={`
-                                            border-b border-stone-400/40 transition-colors duration-50 cursor-pointer p-1 select-none touch-none
-                                            ${isToday(date)
-                                                ? "bg-[#1f2128]/15 hover:bg-[#1f2128]/25"
-                                                : "bg-[#dad6c8] hover:bg-[#1f2128]/15"
-                                            }
-                                            ${inDrag ? "ring-inset ring-1 ring-sky-500/50 bg-sky-500/15" : ""}
-                                        `}
-                                        onPointerDown={(e) => {
-                                            e.currentTarget.setPointerCapture(e.pointerId);
-                                            dragRef.current = { dayIdx, anchorHour: hour };
-                                            rangeRef.current = { min: hour, max: hour };
-                                            setWeekDrag({ dayIdx, min: hour, max: hour });
-                                        }}
-                                        onPointerEnter={() => {
-                                            if (!dragRef.current || dragRef.current.dayIdx !== dayIdx) return;
-                                            const ah = dragRef.current.anchorHour;
-                                            const r = {
-                                                min: Math.min(ah, hour),
-                                                max: Math.max(ah, hour),
-                                            };
-                                            rangeRef.current = r;
-                                            setWeekDrag({ dayIdx, min: r.min, max: r.max });
-                                        }}
-                                    >
-                                        {slotEvents.slice(0, 1).map((event) => (
+                                    return (
+                                        <div
+                                            key={`${dayIdx}-${hour}`}
+                                            className={`
+                                                min-h-0 border-b border-stone-400/40 transition-colors duration-50 cursor-pointer select-none touch-none
+                                                ${isToday(date)
+                                                    ? "bg-[#1f2128]/15 hover:bg-[#1f2128]/25"
+                                                    : "bg-[#dad6c8] hover:bg-[#1f2128]/15"
+                                                }
+                                                ${inDrag ? "ring-inset ring-1 ring-sky-500/50 bg-sky-500/15" : ""}
+                                            `}
+                                            onPointerDown={(e) => {
+                                                e.currentTarget.setPointerCapture(e.pointerId);
+                                                dragRef.current = { dayIdx, anchorHour: hour };
+                                                rangeRef.current = { min: hour, max: hour };
+                                                setWeekDrag({ dayIdx, min: hour, max: hour });
+                                            }}
+                                            onPointerEnter={() => {
+                                                if (!dragRef.current || dragRef.current.dayIdx !== dayIdx) return;
+                                                const ah = dragRef.current.anchorHour;
+                                                const r = {
+                                                    min: Math.min(ah, hour),
+                                                    max: Math.max(ah, hour),
+                                                };
+                                                rangeRef.current = r;
+                                                setWeekDrag({ dayIdx, min: r.min, max: r.max });
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <div className="pointer-events-none absolute inset-x-0 inset-y-0 z-[8] px-0.5">
+                                {weekColumnLayouts[dayIdx].map(
+                                    ({ ev, topPct, heightPct, lane, laneCount }) => {
+                                        const narrow = heightPct < 7;
+                                        return (
                                             <div
-                                                key={event.id}
+                                                key={ev.id}
                                                 onPointerDown={(e) => e.stopPropagation()}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    selectEvent(event);
+                                                    selectEvent(ev);
                                                 }}
-                                                className="rounded-sm border border-stone-500/20 bg-stone-200/55 px-1.5 py-1 cursor-pointer transition-all duration-150 hover:bg-stone-300/80 hover:border-stone-600/45 hover:shadow-[inset_0_0_0_1px_rgba(87,83,78,0.35)] hover:-translate-y-px"
-                                                title={event.title}
+                                                className={`
+                                                    pointer-events-auto absolute flex flex-col overflow-hidden rounded-md border border-solid px-1 py-0.5 text-left shadow-sm cursor-pointer
+                                                    transition-[filter] hover:brightness-95
+                                                `}
+                                                style={{
+                                                    ...eventCardStyle(ev.colorKey),
+                                                    top: `${topPct}%`,
+                                                    height: `${heightPct}%`,
+                                                    left: `calc(${lane} * (100% / ${laneCount}) + 1px)`,
+                                                    width: `calc(100% / ${laneCount} - 2px)`,
+                                                    minHeight: narrow ? 4 : undefined,
+                                                }}
+                                                title={ev.title}
                                             >
-                                                <p className="text-[10px] leading-tight truncate text-stone-800 font-medium">
-                                                    {event.title}
+                                                <p
+                                                    className={`truncate font-medium ${narrow ? "text-[9px] leading-none" : "text-[10px] leading-tight"}`}
+                                                >
+                                                    {ev.title}
                                                 </p>
-                                                <p className="text-[9px] leading-tight truncate text-stone-600">
-                                                    {buildEventPreview(
-                                                        templatesById.get(event.templateId) ?? [],
-                                                        event.data,
-                                                    )}
-                                                </p>
+                                                {!narrow ? (
+                                                    <p className="text-[9px] leading-tight truncate mt-0.5 opacity-80">
+                                                        {buildEventPreview(
+                                                            templatesById.get(ev.templateId) ?? [],
+                                                            ev.data,
+                                                        )}
+                                                    </p>
+                                                ) : null}
                                             </div>
-                                        ))}
-                                        {slotEvents.length > 1 ? (
-                                            <p className="text-[10px] leading-tight text-stone-500">
-                                                +{slotEvents.length - 1}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                );
-                            })}
+                                        );
+                                    },
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

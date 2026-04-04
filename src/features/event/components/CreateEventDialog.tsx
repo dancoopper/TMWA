@@ -19,9 +19,12 @@ import {
 } from "@/components/ui/dialog";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { toast } from "sonner";
+import { DEFAULT_EVENT_COLOR, type EventColorKey } from "@/features/event/models/Event";
+import { EventColorPicker } from "./EventColorPicker";
 
 const DEFAULT_TITLE = "Untitled";
 const DEFAULT_TIME = "09:00";
+const HALF_HOUR_MS = 1_800_000;
 const DEFAULT_FIELD_TYPE: TemplateFieldType = "text";
 
 interface CreateEventDialogProps {
@@ -83,6 +86,7 @@ export default function CreateEventDialog({
     const [eventValues, setEventValues] = useState<EventFieldValue[]>([]);
     const [newFieldKey, setNewFieldKey] = useState("");
     const [newFieldType, setNewFieldType] = useState<TemplateFieldType>(DEFAULT_FIELD_TYPE);
+    const [colorKey, setColorKey] = useState<EventColorKey>(DEFAULT_EVENT_COLOR);
     const inputRef = useRef<HTMLInputElement>(null);
     const { mutate: createEvent, isPending } = useCreateEvent();
     const { data: templates = [] } = useTemplates();
@@ -105,21 +109,21 @@ export default function CreateEventDialog({
         setEndTimeValue(toTimeInputValue(end));
     };
 
-    const bumpEndByHours = (delta: number) => {
+    const bumpEndByMinutes = (deltaMinutes: number) => {
         const start = new Date(`${startDateValue}T${startTimeValue || DEFAULT_TIME}:00`);
         const end = new Date(`${endDateValue}T${endTimeValue || DEFAULT_TIME}:00`);
         if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
-        const next = new Date(end.getTime() + delta * 3_600_000);
+        const next = new Date(end.getTime() + deltaMinutes * 60_000);
         if (next.getTime() <= start.getTime()) return;
         setEndDateValue(toDateInputValue(next));
         setEndTimeValue(toTimeInputValue(next));
     };
 
-    const canShrinkEndByOneHour = useMemo(() => {
+    const canShrinkEndByHalfHour = useMemo(() => {
         const start = new Date(`${startDateValue}T${startTimeValue || DEFAULT_TIME}:00`);
         const end = new Date(`${endDateValue}T${endTimeValue || DEFAULT_TIME}:00`);
         if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-        return end.getTime() - start.getTime() > 3_600_000;
+        return end.getTime() - start.getTime() > HALF_HOUR_MS;
     }, [startDateValue, startTimeValue, endDateValue, endTimeValue]);
 
     useEffect(() => {
@@ -161,6 +165,7 @@ export default function CreateEventDialog({
         setRepeatWeeks(8);
         setNewFieldKey("");
         setNewFieldType(DEFAULT_FIELD_TYPE);
+        setColorKey(DEFAULT_EVENT_COLOR);
     }, [initialStart, initialEnd, open]);
 
     const resetForm = () => {
@@ -181,6 +186,7 @@ export default function CreateEventDialog({
         setRepeatWeeks(8);
         setNewFieldKey("");
         setNewFieldType(DEFAULT_FIELD_TYPE);
+        setColorKey(DEFAULT_EVENT_COLOR);
         if (templates.length > 0) {
             setSelectedTemplateId(templates[0].id);
             setCustomSchema(templates[0].data);
@@ -215,6 +221,7 @@ export default function CreateEventDialog({
                 selectedTemplateId: selectedTemplateId ?? undefined,
                 schema: activeSchema,
                 data: normalizedValues,
+                colorKey,
             },
             {
                 onSuccess: () => {
@@ -280,6 +287,13 @@ export default function CreateEventDialog({
                         />
                     </div>
 
+                    <EventColorPicker
+                        id="create-event-color"
+                        value={colorKey}
+                        onChange={setColorKey}
+                        disabled={isSubmitting}
+                    />
+
                     <div className="space-y-3 rounded-lg border border-stone-400/35 bg-stone-200/20 px-3 py-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">
                             When
@@ -336,9 +350,9 @@ export default function CreateEventDialog({
                                 <div className="flex items-center gap-1">
                                     <button
                                         type="button"
-                                        disabled={isSubmitting || !canShrinkEndByOneHour}
-                                        aria-label="End one hour earlier"
-                                        onClick={() => bumpEndByHours(-1)}
+                                        disabled={isSubmitting || !canShrinkEndByHalfHour}
+                                        aria-label="End 30 minutes earlier"
+                                        onClick={() => bumpEndByMinutes(-30)}
                                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
                                     >
                                         -
@@ -354,8 +368,8 @@ export default function CreateEventDialog({
                                     <button
                                         type="button"
                                         disabled={isSubmitting}
-                                        aria-label="End one hour later"
-                                        onClick={() => bumpEndByHours(1)}
+                                        aria-label="End 30 minutes later"
+                                        onClick={() => bumpEndByMinutes(30)}
                                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
                                     >
                                         +

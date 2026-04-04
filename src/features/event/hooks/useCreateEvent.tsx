@@ -6,7 +6,7 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import { templateRepository } from "@/repositories/templateRepository";
 import type { EventFieldValue } from "@/features/event/eventFieldValues";
 import type { TemplateField } from "@/features/template/templateFields";
-import type { Event } from "@/features/event/models/Event";
+import type { Event, EventColorKey } from "@/features/event/models/Event";
 import { addDays } from "@/features/event/eventTimeRange";
 
 function getReadableErrorMessage(error: unknown): string {
@@ -53,6 +53,7 @@ export function useCreateEvent() {
                 selectedTemplateId,
                 schema,
                 saveAsTemplateName,
+                colorKey,
             }: {
                 title: string;
                 start: Date;
@@ -63,6 +64,7 @@ export function useCreateEvent() {
                 selectedTemplateId?: number;
                 schema: TemplateField[];
                 saveAsTemplateName?: string;
+                colorKey?: EventColorKey;
             },
         ): Promise<Event> => {
             if (!session?.user.id) throw new Error("No active session");
@@ -111,6 +113,7 @@ export function useCreateEvent() {
                     workspaceId: selectedWorkspaceId,
                     templateId,
                     data,
+                    colorKey,
                 });
             }
 

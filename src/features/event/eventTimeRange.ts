@@ -40,3 +40,46 @@ export function addDays(d: Date, days: number): Date {
     x.setDate(x.getDate() + days);
     return x;
 }
+
+/**
+ * Visible segment of `event` clipped to [windowStart, windowEnd).
+ * Percents are relative to the window height in time (for absolute positioning in a time grid).
+ */
+export function eventSegmentInWindow(
+    event: Event,
+    windowStart: Date,
+    windowEnd: Date,
+): { topPct: number; heightPct: number } | null {
+    const w0 = windowStart.getTime();
+    const w1 = windowEnd.getTime();
+    const total = w1 - w0;
+    if (total <= 0) return null;
+    const ev0 = Math.max(event.start.getTime(), w0);
+    const ev1 = Math.min(event.end.getTime(), w1);
+    if (ev1 <= ev0) return null;
+    return {
+        topPct: ((ev0 - w0) / total) * 100,
+        heightPct: ((ev1 - ev0) / total) * 100,
+    };
+}
+
+/** Greedy lane assignment for overlapping intervals (left-to-right columns). */
+export function assignEventLanes(events: Event[]): { laneById: Map<number, number>; laneCount: number } {
+    const sorted = [...events].sort((a, b) => a.start.getTime() - b.start.getTime());
+    const laneEnds: number[] = [];
+    const laneById = new Map<number, number>();
+    for (const ev of sorted) {
+        const t0 = ev.start.getTime();
+        const idx = laneEnds.findIndex((endMs) => t0 >= endMs);
+        let lane: number;
+        if (idx === -1) {
+            lane = laneEnds.length;
+            laneEnds.push(ev.end.getTime());
+        } else {
+            lane = idx;
+            laneEnds[lane] = Math.max(laneEnds[lane], ev.end.getTime());
+        }
+        laneById.set(ev.id, lane);
+    }
+    return { laneById, laneCount: Math.max(1, laneEnds.length) };
+}

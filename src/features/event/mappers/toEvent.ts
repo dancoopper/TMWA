@@ -1,4 +1,5 @@
 import { type Database } from '@/types/database.types';
+import { normalizeEventColorKey } from '../eventColors';
 import { type Event, EventSchema } from '../models/Event';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
@@ -15,6 +16,7 @@ export function toEvent(row: EventRow): Event {
         start,
         end,
         title: row.title,
+        colorKey: normalizeEventColorKey(row.color_key),
     };
 
     return EventSchema.parse(mappedData);

@@ -66,13 +66,9 @@ export function useFindATime(shareId: string | undefined) {
                 const daySlots = buildDaySlots(cursor);
                 for (const slot of daySlots) {
                     // Remove slots that overlap with existing calendar events
-                    const blockedByEvent = events.some((ev) => {
-                        // Events have a single `date`; treat them as 1-hour blocks too
-                        const evStart = new Date(ev.date);
-                        const evEnd = new Date(ev.date);
-                        evEnd.setHours(evEnd.getHours() + 1);
-                        return overlaps(slot.start, slot.end, evStart, evEnd);
-                    });
+                    const blockedByEvent = events.some((ev) =>
+                        overlaps(slot.start, slot.end, ev.start, ev.end),
+                    );
 
                     if (blockedByEvent) {
                         // Skip — slot is occupied by an existing event

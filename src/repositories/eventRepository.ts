@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { type Event } from "@/features/event/models/Event";
+import { DEFAULT_EVENT_COLOR, type Event, type EventColorKey } from "@/features/event/models/Event";
 import { toEvent } from "@/features/event/mappers/toEvent";
 import { type Database } from "@/types/database.types";
 
@@ -12,6 +12,7 @@ export type CreateEventInput = {
     start: Date;
     end: Date;
     data: EventInsert["data"];
+    colorKey?: EventColorKey;
 };
 
 export type UpdateEventInput = {
@@ -20,6 +21,7 @@ export type UpdateEventInput = {
     end?: Date;
     data?: Database["public"]["Tables"]["events"]["Update"]["data"];
     templateId?: number;
+    colorKey?: EventColorKey;
 };
 
 export const eventRepository = {
@@ -61,6 +63,7 @@ export const eventRepository = {
         if (updates.end) payload.ends_at = updates.end.toISOString();
         if (updates.data !== undefined) payload.data = updates.data;
         if (typeof updates.templateId === "number") payload.template_id = updates.templateId;
+        if (updates.colorKey !== undefined) payload.color_key = updates.colorKey;
 
         const { data, error } = await supabase.from("events")
             .update(payload)
@@ -88,6 +91,7 @@ export const eventRepository = {
             date: event.start.toISOString(),
             ends_at: event.end.toISOString(),
             data: event.data,
+            color_key: event.colorKey ?? DEFAULT_EVENT_COLOR,
         };
 
         const { data, error } = await supabase
@@ -115,6 +119,7 @@ export const eventRepository = {
         if (updates.end) payload.ends_at = updates.end.toISOString();
         if (updates.data !== undefined) payload.data = updates.data as Database["public"]["Tables"]["events"]["Update"]["data"];
         if (typeof updates.templateId === "number") payload.template_id = updates.templateId;
+        if (updates.colorKey !== undefined) payload.color_key = updates.colorKey;
 
         const { data, error } = await supabase
             .from("events")

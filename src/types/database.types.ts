@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       events: {
         Row: {
+          color_key: string
           data: Json
           date: string
           ends_at: string
@@ -20,6 +21,7 @@ export type Database = {
           workspace_id: number
         }
         Insert: {
+          color_key?: string
           data: Json
           date: string
           ends_at: string
@@ -29,6 +31,7 @@ export type Database = {
           workspace_id: number
         }
         Update: {
+          color_key?: string
           data?: Json
           date?: string
           ends_at?: string
