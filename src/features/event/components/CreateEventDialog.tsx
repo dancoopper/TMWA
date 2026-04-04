@@ -44,12 +44,25 @@ function toTimeInputValue(date: Date) {
     return `${hours}:${minutes}`;
 }
 
-function getDefaultTimeValue(date?: Date) {
-    if (!date) return DEFAULT_TIME;
-    if (date.getHours() !== 0 || date.getMinutes() !== 0) {
-        return toTimeInputValue(date);
+/** Calendar-day clicks use midnight local time; treat that as “no time yet” and use DEFAULT_TIME. */
+function effectiveStartFromInitial(initialStart?: Date): Date {
+    if (!initialStart) {
+        return new Date();
     }
-    return DEFAULT_TIME;
+    const base = new Date(initialStart);
+    const y = base.getFullYear();
+    const m = base.getMonth();
+    const d = base.getDate();
+    const isMidnight =
+        base.getHours() === 0 &&
+        base.getMinutes() === 0 &&
+        base.getSeconds() === 0 &&
+        base.getMilliseconds() === 0;
+    if (isMidnight) {
+        const [hh, mm] = DEFAULT_TIME.split(":").map(Number);
+        return new Date(y, m, d, hh, mm, 0, 0);
+    }
+    return base;
 }
 
 export default function CreateEventDialog({
@@ -84,6 +97,31 @@ export default function CreateEventDialog({
     );
     const isSubmitting = isPending;
 
+    const setEndToOneHourAfterStart = (nextStartDate: string, nextStartTime: string) => {
+        const start = new Date(`${nextStartDate}T${nextStartTime || DEFAULT_TIME}:00`);
+        if (Number.isNaN(start.getTime())) return;
+        const end = new Date(start.getTime() + 3_600_000);
+        setEndDateValue(toDateInputValue(end));
+        setEndTimeValue(toTimeInputValue(end));
+    };
+
+    const bumpEndByHours = (delta: number) => {
+        const start = new Date(`${startDateValue}T${startTimeValue || DEFAULT_TIME}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue || DEFAULT_TIME}:00`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+        const next = new Date(end.getTime() + delta * 3_600_000);
+        if (next.getTime() <= start.getTime()) return;
+        setEndDateValue(toDateInputValue(next));
+        setEndTimeValue(toTimeInputValue(next));
+    };
+
+    const canShrinkEndByOneHour = useMemo(() => {
+        const start = new Date(`${startDateValue}T${startTimeValue || DEFAULT_TIME}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue || DEFAULT_TIME}:00`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+        return end.getTime() - start.getTime() > 3_600_000;
+    }, [startDateValue, startTimeValue, endDateValue, endTimeValue]);
+
     useEffect(() => {
         if (!activeSchema.length) return;
         setEventValues((current) => normalizeEventValues(activeSchema, current));
@@ -105,12 +143,19 @@ export default function CreateEventDialog({
 
     useEffect(() => {
         if (!open) return;
-        const s = initialStart ? new Date(initialStart) : new Date();
-        const e = initialEnd ? new Date(initialEnd) : new Date(s.getTime() + 3_600_000);
+        const s = effectiveStartFromInitial(initialStart);
         setStartDateValue(toDateInputValue(s));
-        setStartTimeValue(getDefaultTimeValue(initialStart ?? undefined) || toTimeInputValue(s));
-        setEndDateValue(toDateInputValue(e));
-        setEndTimeValue(toTimeInputValue(e));
+        setStartTimeValue(toTimeInputValue(s));
+
+        if (initialEnd) {
+            const e = new Date(initialEnd);
+            setEndDateValue(toDateInputValue(e));
+            setEndTimeValue(toTimeInputValue(e));
+        } else {
+            const e = new Date(s.getTime() + 3_600_000);
+            setEndDateValue(toDateInputValue(e));
+            setEndTimeValue(toTimeInputValue(e));
+        }
         setTitle(DEFAULT_TITLE);
         setRepeatWeekly(false);
         setRepeatWeeks(8);
@@ -120,12 +165,18 @@ export default function CreateEventDialog({
 
     const resetForm = () => {
         setTitle(DEFAULT_TITLE);
-        const s = initialStart ? new Date(initialStart) : new Date();
-        const e = initialEnd ? new Date(initialEnd) : new Date(s.getTime() + 3_600_000);
+        const s = effectiveStartFromInitial(initialStart);
         setStartDateValue(toDateInputValue(s));
-        setStartTimeValue(getDefaultTimeValue(initialStart ?? undefined) || toTimeInputValue(s));
-        setEndDateValue(toDateInputValue(e));
-        setEndTimeValue(toTimeInputValue(e));
+        setStartTimeValue(toTimeInputValue(s));
+        if (initialEnd) {
+            const e = new Date(initialEnd);
+            setEndDateValue(toDateInputValue(e));
+            setEndTimeValue(toTimeInputValue(e));
+        } else {
+            const e = new Date(s.getTime() + 3_600_000);
+            setEndDateValue(toDateInputValue(e));
+            setEndTimeValue(toTimeInputValue(e));
+        }
         setRepeatWeekly(false);
         setRepeatWeeks(8);
         setNewFieldKey("");
@@ -229,40 +280,47 @@ export default function CreateEventDialog({
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">Starts</p>
+                    <div className="space-y-3 rounded-lg border border-stone-400/35 bg-stone-200/20 px-3 py-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">
+                            When
+                        </p>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label htmlFor="start-date" className="text-stone-700">Date</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="start-date" className="text-stone-700 text-xs">Start date</Label>
                                 <Input
                                     id="start-date"
                                     type="date"
                                     value={startDateValue}
-                                    onChange={(e) => setStartDateValue(e.target.value)}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        setStartDateValue(v);
+                                        setEndToOneHourAfterStart(v, startTimeValue);
+                                    }}
                                     required
                                     disabled={isSubmitting}
                                     className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="start-time" className="text-stone-700">Time</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="start-time" className="text-stone-700 text-xs">Start time</Label>
                                 <Input
                                     id="start-time"
                                     type="time"
                                     value={startTimeValue}
-                                    onChange={(e) => setStartTimeValue(e.target.value)}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        setStartTimeValue(v);
+                                        setEndToOneHourAfterStart(startDateValue, v);
+                                    }}
                                     disabled={isSubmitting}
                                     className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">Ends</p>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label htmlFor="end-date" className="text-stone-700">Date</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="end-date" className="text-stone-700 text-xs">End date</Label>
                                 <Input
                                     id="end-date"
                                     type="date"
@@ -273,16 +331,36 @@ export default function CreateEventDialog({
                                     className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="end-time" className="text-stone-700">Time</Label>
-                                <Input
-                                    id="end-time"
-                                    type="time"
-                                    value={endTimeValue}
-                                    onChange={(e) => setEndTimeValue(e.target.value)}
-                                    disabled={isSubmitting}
-                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                                />
+                            <div className="space-y-1.5 min-w-0">
+                                <Label htmlFor="end-time" className="text-stone-700 text-xs">End time</Label>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        disabled={isSubmitting || !canShrinkEndByOneHour}
+                                        aria-label="End one hour earlier"
+                                        onClick={() => bumpEndByHours(-1)}
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        -
+                                    </button>
+                                    <Input
+                                        id="end-time"
+                                        type="time"
+                                        value={endTimeValue}
+                                        onChange={(e) => setEndTimeValue(e.target.value)}
+                                        disabled={isSubmitting}
+                                        className="min-w-0 flex-1 border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25 [&::-webkit-calendar-picker-indicator]:hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        disabled={isSubmitting}
+                                        aria-label="End one hour later"
+                                        onClick={() => bumpEndByHours(1)}
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-400/50 bg-[#efe9dc] text-lg font-medium text-stone-800 leading-none hover:bg-stone-300/50 disabled:opacity-40 disabled:pointer-events-none"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
