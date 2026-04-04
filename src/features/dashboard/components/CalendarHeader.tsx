@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Search, Plus, Users } from "lucide-react";
 import ShareWorkspaceDialog from "@/features/share/components/ShareWorkspaceDialog";
+import { MemberDisc } from "@/features/workspace/components/MemberDisc";
+import { useWorkspacePresence } from "@/features/workspace/hooks/useWorkspacePresence";
 
 export default function CalendarHeader() {
     const [shareOpen, setShareOpen] = useState(false);
@@ -21,6 +23,7 @@ export default function CalendarHeader() {
     const { data: workspaces } = useWorkspaces();
     const selectedWorkspace = workspaces?.find((workspace) => workspace.id === selectedWorkspaceId);
     const workspaceName = selectedWorkspace?.name ?? workspaces?.[0]?.name ?? "Workspace";
+    const { others: viewingOthers } = useWorkspacePresence(selectedWorkspaceId);
 
     const goToPrev = () => {
         const newDate = new Date(selectedDate);
@@ -139,6 +142,26 @@ export default function CalendarHeader() {
                         <Plus className="w-3 h-3" />
                         Add Event
                     </Button>
+
+                    {selectedWorkspaceId != null && viewingOthers.length > 0 && (
+                        <div
+                            className="hidden lg:flex items-center pl-1 border-l border-stone-400/40 ml-0.5"
+                            aria-label={`Others viewing this workspace: ${viewingOthers.map((p) => p.name).join(", ")}`}
+                        >
+                            <div className="flex -space-x-1 shrink-0">
+                                {viewingOthers.slice(0, 8).map((p) => (
+                                    <MemberDisc
+                                        key={p.userId}
+                                        userId={p.userId}
+                                        label={p.name}
+                                        email={p.email}
+                                        title={p.name}
+                                        className="ring-2 ring-[#dfdacb]"
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

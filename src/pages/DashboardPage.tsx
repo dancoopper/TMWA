@@ -5,6 +5,7 @@ import {
     DayDetailPanel,
     Sidebar,
 } from "@/features/dashboard/components";
+import WorkspaceCollaborationSync from "@/features/workspace/components/WorkspaceCollaborationSync";
 import CreateEventDialog from "@/features/event/components/CreateEventDialog";
 import { useDashboardStore } from "@/stores/dashboardStore";
 
@@ -21,6 +22,7 @@ export default function DashboardPage() {
             className="flex h-screen w-full overflow-hidden"
             style={{ backgroundColor: "#e7e2d4" }}
         >
+            <WorkspaceCollaborationSync />
             {/* Left Sidebar */}
             <Sidebar />
 

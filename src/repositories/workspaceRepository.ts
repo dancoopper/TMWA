@@ -4,6 +4,14 @@ import { type Workspace } from "@/features/workspace/models/Workspace";
 import { toWorkspaceMember } from "@/features/workspace/mappers/toWorkspaceMember";
 import { type WorkspaceMember } from "@/features/workspace/models/WorkspaceMember";
 
+export type WorkspaceMembersBulkResult = {
+    /**
+     * Workspaces with more than one `workspace_members` row (shared).
+     * Plain array so React Query caching stays reliable (avoid Set/Map in cache).
+     */
+    collaborativeWorkspaceIds: number[];
+};
+
 export const workspaceRepository = {
     async getUserWorkspaces(userId: string): Promise<Workspace[]> {
         const { data, error } = await supabase
@@ -143,5 +151,33 @@ export const workspaceRepository = {
 
         if (error) throw error;
         return data as string | null;
+    },
+
+    /** Count members per workspace for sidebar shared-workspace indicator. No profile join so every member row counts. */
+    async getWorkspaceMembersByWorkspaceIds(workspaceIds: number[]): Promise<WorkspaceMembersBulkResult> {
+        if (workspaceIds.length === 0) {
+            return { collaborativeWorkspaceIds: [] };
+        }
+
+        const { data, error } = await supabase
+            .from("workspace_members")
+            .select("workspace_id")
+            .in("workspace_id", workspaceIds);
+
+        if (error) throw error;
+
+        const memberCountByWorkspace = new Map<number, number>();
+        for (const row of data || []) {
+            const wsId = row.workspace_id as number | null;
+            if (wsId == null) continue;
+            memberCountByWorkspace.set(wsId, (memberCountByWorkspace.get(wsId) ?? 0) + 1);
+        }
+
+        const collaborativeWorkspaceIds = [...memberCountByWorkspace.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([wsId]) => wsId)
+            .sort((a, b) => a - b);
+
+        return { collaborativeWorkspaceIds };
     },
 };
