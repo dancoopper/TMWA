@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { Toaster } from "sonner";
 import EmailVerifyPage from "./pages/auth/EmailVerifyPage";
 import SettingsPage from "./pages/SettingsPage";
+import AvailabilityBookingPage from "./pages/AvailabilityBookingPage";
 import { ROUTES } from "@/config/routes";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ export default function App() {
 
                     {/* Accessible by anyone */}
                     <Route path={ROUTES.HOME} element={<LandingPage />} />
+                    <Route path={ROUTES.AVAILABILITY} element={<AvailabilityBookingPage />} />
                 </Routes>
             </BrowserRouter>
             <Toaster position="top-center" richColors />
