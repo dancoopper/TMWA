@@ -1,10 +1,10 @@
 import { useEvents } from "@/features/event/hooks/useEvents";
 import { buildEventPreview } from "@/features/event/eventFieldValues";
-import type { Event } from "@/features/event/models/Event";
 import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { useMemo } from "react";
+import { eventOverlapsHour } from "@/features/event/eventTimeRange";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DEFAULT_START_HOUR = 5;
@@ -21,13 +21,6 @@ function getWeekDates(date: Date) {
         d.setDate(weekStart.getDate() + i);
         return d;
     });
-}
-
-function toDayKey(date: Date) {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
 }
 
 function formatHourLabel(hour24: number) {
@@ -70,7 +63,7 @@ export default function CalendarWeekView() {
     const startHour = useMemo(() => {
         if (events.length === 0) return DEFAULT_START_HOUR;
 
-        const earliestHour = Math.min(...events.map((event) => event.date.getHours()));
+        const earliestHour = Math.min(...events.map((event) => event.start.getHours()));
         return earliestHour < DEFAULT_START_HOUR ? earliestHour : DEFAULT_START_HOUR;
     }, [events]);
 
@@ -83,27 +76,35 @@ export default function CalendarWeekView() {
         [timeSlots.length]
     );
 
-    const eventsByDayAndHour = useMemo(() => {
-        const grouped = new Map<string, Map<number, Event[]>>();
+    const getSlotEvents = (date: Date, hour: number) =>
+        events.filter((ev) => eventOverlapsHour(ev, date, hour));
 
-        for (const event of events) {
-            const dayKey = toDayKey(event.date);
-            const hour = event.date.getHours();
-            const dayMap = grouped.get(dayKey) ?? new Map<number, Event[]>();
-            const hourEvents = dayMap.get(hour) ?? [];
-            hourEvents.push(event);
-            dayMap.set(hour, hourEvents);
-            grouped.set(dayKey, dayMap);
-        }
+    const weekDatesRef = useRef(weekDates);
+    weekDatesRef.current = weekDates;
 
-        return grouped;
-    }, [events]);
+    const dragRef = useRef<{ dayIdx: number; anchorHour: number } | null>(null);
+    const rangeRef = useRef<{ min: number; max: number } | null>(null);
+    const [weekDrag, setWeekDrag] = useState<{ dayIdx: number; min: number; max: number } | null>(null);
 
-    const getSlotEvents = (date: Date, hour: number) => {
-        const dayMap = eventsByDayAndHour.get(toDayKey(date));
-        if (!dayMap) return [];
-        return dayMap.get(hour) ?? [];
-    };
+    useEffect(() => {
+        const onPointerUp = () => {
+            if (!dragRef.current || !rangeRef.current) return;
+            const { dayIdx } = dragRef.current;
+            const r = rangeRef.current;
+            const date = weekDatesRef.current[dayIdx];
+            dragRef.current = null;
+            rangeRef.current = null;
+            setWeekDrag(null);
+            const start = new Date(date);
+            start.setHours(r.min, 0, 0, 0);
+            const end = new Date(date);
+            end.setHours(r.max + 1, 0, 0, 0);
+            setSelectedDate(date);
+            openCreateEventDialog({ start, end });
+        };
+        window.addEventListener("pointerup", onPointerUp);
+        return () => window.removeEventListener("pointerup", onPointerUp);
+    }, [openCreateEventDialog, setSelectedDate]);
     const currentHour = today.getHours();
     const currentMinute = today.getMinutes();
     const currentTimeLabel = formatCurrentTimeLabel(today);
@@ -206,27 +207,44 @@ export default function CalendarWeekView() {
                         >
                             {timeSlots.map((hour) => {
                                 const slotEvents = getSlotEvents(date, hour);
-                                const slotDate = new Date(date);
-                                slotDate.setHours(hour, 0, 0, 0);
+                                const inDrag =
+                                    weekDrag !== null &&
+                                    weekDrag.dayIdx === dayIdx &&
+                                    hour >= weekDrag.min &&
+                                    hour <= weekDrag.max;
 
                                 return (
                                     <div
                                         key={`${dayIdx}-${hour}`}
                                         className={`
-                                            border-b border-stone-400/40 transition-colors duration-50 cursor-pointer p-1
+                                            border-b border-stone-400/40 transition-colors duration-50 cursor-pointer p-1 select-none touch-none
                                             ${isToday(date)
                                                 ? "bg-[#1f2128]/15 hover:bg-[#1f2128]/25"
                                                 : "bg-[#dad6c8] hover:bg-[#1f2128]/15"
                                             }
+                                            ${inDrag ? "ring-inset ring-1 ring-sky-500/50 bg-sky-500/15" : ""}
                                         `}
-                                        onClick={() => {
-                                            setSelectedDate(slotDate);
-                                            openCreateEventDialog(slotDate);
+                                        onPointerDown={(e) => {
+                                            e.currentTarget.setPointerCapture(e.pointerId);
+                                            dragRef.current = { dayIdx, anchorHour: hour };
+                                            rangeRef.current = { min: hour, max: hour };
+                                            setWeekDrag({ dayIdx, min: hour, max: hour });
+                                        }}
+                                        onPointerEnter={() => {
+                                            if (!dragRef.current || dragRef.current.dayIdx !== dayIdx) return;
+                                            const ah = dragRef.current.anchorHour;
+                                            const r = {
+                                                min: Math.min(ah, hour),
+                                                max: Math.max(ah, hour),
+                                            };
+                                            rangeRef.current = r;
+                                            setWeekDrag({ dayIdx, min: r.min, max: r.max });
                                         }}
                                     >
                                         {slotEvents.slice(0, 1).map((event) => (
                                             <div
                                                 key={event.id}
+                                                onPointerDown={(e) => e.stopPropagation()}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     selectEvent(event);

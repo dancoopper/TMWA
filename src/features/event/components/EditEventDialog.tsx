@@ -24,6 +24,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface EditEventDialogProps {
     trigger: React.ReactNode;
@@ -53,8 +54,10 @@ export default function EditEventDialog({
 }: EditEventDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [title, setTitle] = useState(event.title);
-    const [dateValue, setDateValue] = useState(toDateInputValue(event.date));
-    const [timeValue, setTimeValue] = useState(toTimeInputValue(event.date));
+    const [startDateValue, setStartDateValue] = useState(toDateInputValue(event.start));
+    const [startTimeValue, setStartTimeValue] = useState(toTimeInputValue(event.start));
+    const [endDateValue, setEndDateValue] = useState(toDateInputValue(event.end));
+    const [endTimeValue, setEndTimeValue] = useState(toTimeInputValue(event.end));
     const [schema, setSchema] = useState<TemplateField[]>([]);
     const [detailValues, setDetailValues] = useState<EventFieldValue[]>([]);
     const [newFieldKey, setNewFieldKey] = useState("");
@@ -79,8 +82,10 @@ export default function EditEventDialog({
     useEffect(() => {
         const nextSchema = normalizeTemplateFields(currentTemplate?.data ?? []);
         setTitle(event.title);
-        setDateValue(toDateInputValue(event.date));
-        setTimeValue(toTimeInputValue(event.date));
+        setStartDateValue(toDateInputValue(event.start));
+        setStartTimeValue(toTimeInputValue(event.start));
+        setEndDateValue(toDateInputValue(event.end));
+        setEndTimeValue(toTimeInputValue(event.end));
         setSchema(nextSchema);
         setDetailValues(normalizeEventValues(nextSchema, event.data));
         setNewFieldKey("");
@@ -89,7 +94,12 @@ export default function EditEventDialog({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const parsedDate = new Date(`${dateValue}T${timeValue}:00`);
+        const start = new Date(`${startDateValue}T${startTimeValue}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue}:00`);
+        if (end.getTime() <= start.getTime()) {
+            toast.error("End time must be after start time.");
+            return;
+        }
         const normalizedSchema = normalizeTemplateFields(schema);
         const normalizedValues = normalizeEventValues(normalizedSchema, detailValues);
         const currentSchema = normalizeTemplateFields(currentTemplate?.data ?? []);
@@ -116,7 +126,8 @@ export default function EditEventDialog({
         const updatedEvent = await updateEventAsync({
             id: event.id,
             title: title.trim(),
-            date: parsedDate,
+            start,
+            end,
             templateId: nextTemplateId,
             data: normalizedValues,
         });
@@ -164,30 +175,62 @@ export default function EditEventDialog({
                             className="border-stone-400/50 bg-[#efe9dc] text-stone-800 focus-visible:ring-sky-500/25"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-event-date" className="text-stone-700">Date</Label>
-                            <Input
-                                id="edit-event-date"
-                                type="date"
-                                value={dateValue}
-                                onChange={(e) => setDateValue(e.target.value)}
-                                required
-                                disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                            />
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-semibold uppercase text-stone-500">Starts</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-start-date" className="text-stone-700">Date</Label>
+                                <Input
+                                    id="edit-start-date"
+                                    type="date"
+                                    value={startDateValue}
+                                    onChange={(e) => setStartDateValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-start-time" className="text-stone-700">Time</Label>
+                                <Input
+                                    id="edit-start-time"
+                                    type="time"
+                                    value={startTimeValue}
+                                    onChange={(e) => setStartTimeValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-event-time" className="text-stone-700">Time</Label>
-                            <Input
-                                id="edit-event-time"
-                                type="time"
-                                value={timeValue}
-                                onChange={(e) => setTimeValue(e.target.value)}
-                                required
-                                disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                            />
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-semibold uppercase text-stone-500">Ends</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-end-date" className="text-stone-700">Date</Label>
+                                <Input
+                                    id="edit-end-date"
+                                    type="date"
+                                    value={endDateValue}
+                                    onChange={(e) => setEndDateValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-end-time" className="text-stone-700">Time</Label>
+                                <Input
+                                    id="edit-end-time"
+                                    type="time"
+                                    value={endTimeValue}
+                                    onChange={(e) => setEndTimeValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
                         </div>
                     </div>
                     {schema.length > 0 ? (

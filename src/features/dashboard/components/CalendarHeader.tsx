@@ -11,6 +11,9 @@ import { useWorkspacePresence } from "@/features/workspace/hooks/useWorkspacePre
 export default function CalendarHeader() {
     const [shareOpen, setShareOpen] = useState(false);
     const {
+        mainView,
+        tasksViewMode,
+        setTasksViewMode,
         calendarView,
         setCalendarView,
         searchQuery,
@@ -75,51 +78,89 @@ export default function CalendarHeader() {
 
                 {/* Navigation & View Toggle */}
                 <div className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-1 mr-1">
-                        <button
-                            onClick={goToPrev}
-                            className="p-1 rounded-md hover:bg-stone-300/50 transition-colors duration-200"
-                        >
-                            <ChevronLeft className="w-4 h-4 text-stone-600" />
-                        </button>
-                        <span className="hidden md:block text-[11px] font-medium text-stone-600 min-w-[88px] text-center">
-                            {monthName}
-                        </span>
-                        <button
-                            onClick={goToNext}
-                            className="p-1 rounded-md hover:bg-stone-300/50 transition-colors duration-200"
-                        >
-                            <ChevronRight className="w-4 h-4 text-stone-600" />
-                        </button>
-                    </div>
+                    {mainView === "calendar"
+                        ? (
+                            <>
+                                <div className="flex items-center gap-1 mr-1">
+                                    <button
+                                        type="button"
+                                        onClick={goToPrev}
+                                        className="p-1 rounded-md hover:bg-stone-300/50 transition-colors duration-200"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 text-stone-600" />
+                                    </button>
+                                    <span className="hidden md:block text-[11px] font-medium text-stone-600 min-w-[88px] text-center">
+                                        {monthName}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={goToNext}
+                                        className="p-1 rounded-md hover:bg-stone-300/50 transition-colors duration-200"
+                                    >
+                                        <ChevronRight className="w-4 h-4 text-stone-600" />
+                                    </button>
+                                </div>
 
-                    {/* Month/Week Toggle */}
-                    <div className="flex bg-stone-400/30 rounded-full p-0.5">
-                        <button
-                            onClick={() => setCalendarView("month")}
-                            className={`
+                                <div className="flex bg-stone-400/30 rounded-full p-0.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCalendarView("month")}
+                                        className={`
                                 px-2.5 py-0.5 text-[10px] font-semibold rounded-full transition-all duration-300
                                 ${calendarView === "month"
                                     ? "bg-stone-700 text-white shadow-sm"
                                     : "text-stone-600 hover:text-stone-800"
                                 }
                             `}
-                        >
-                            Month
-                        </button>
-                        <button
-                            onClick={() => setCalendarView("week")}
-                            className={`
+                                    >
+                                        Month
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCalendarView("week")}
+                                        className={`
                                 px-2.5 py-0.5 text-[10px] font-semibold rounded-full transition-all duration-300
                                 ${calendarView === "week"
                                     ? "bg-stone-700 text-white shadow-sm"
                                     : "text-stone-600 hover:text-stone-800"
                                 }
                             `}
-                        >
-                            Week
-                        </button>
-                    </div>
+                                    >
+                                        Week
+                                    </button>
+                                </div>
+                            </>
+                        )
+                        : (
+                            <div className="flex bg-stone-400/30 rounded-full p-0.5 mr-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setTasksViewMode("list")}
+                                    className={`
+                                        px-2.5 py-0.5 text-[10px] font-semibold rounded-full transition-all duration-300
+                                        ${tasksViewMode === "list"
+                                            ? "bg-stone-700 text-white shadow-sm"
+                                            : "text-stone-600 hover:text-stone-800"
+                                        }
+                                    `}
+                                >
+                                    List
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTasksViewMode("board")}
+                                    className={`
+                                        px-2.5 py-0.5 text-[10px] font-semibold rounded-full transition-all duration-300
+                                        ${tasksViewMode === "board"
+                                            ? "bg-stone-700 text-white shadow-sm"
+                                            : "text-stone-600 hover:text-stone-800"
+                                        }
+                                    `}
+                                >
+                                    Board
+                                </button>
+                            </div>
+                        )}
 
                     {/* Share Button */}
                     <Button
@@ -137,10 +178,13 @@ export default function CalendarHeader() {
                         size="sm"
                         className="gap-1.5 rounded-full text-white transition-all duration-200 text-[10px] h-6 px-2.5"
                         style={{ backgroundColor: "#8d9b67" }}
-                        onClick={() => openCreateEventDialog(selectedDate)}
+                        onClick={() =>
+                            openCreateEventDialog({
+                                start: mainView === "tasks" ? new Date() : selectedDate,
+                            })}
                     >
                         <Plus className="w-3 h-3" />
-                        Add Event
+                        {mainView === "tasks" ? "Add task" : "Add Event"}
                     </Button>
 
                     {selectedWorkspaceId != null && viewingOthers.length > 0 && (

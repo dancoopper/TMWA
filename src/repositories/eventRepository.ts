@@ -9,13 +9,15 @@ export type CreateEventInput = {
     workspaceId: number;
     templateId: number;
     title: string;
-    date: Date;
+    start: Date;
+    end: Date;
     data: EventInsert["data"];
 };
 
 export type UpdateEventInput = {
     title?: string;
-    date?: Date;
+    start?: Date;
+    end?: Date;
     data?: Database["public"]["Tables"]["events"]["Update"]["data"];
     templateId?: number;
 };
@@ -30,13 +32,14 @@ export const eventRepository = {
         return data.map(toEvent);
     },
 
+    /** Events whose time range overlaps [startDate, endDate] (inclusive window by instant). */
     async getEventsByRange(workspaceId: number, startDate: Date, endDate: Date): Promise<Event[]> {
         const { data, error } = await supabase
             .from("events")
             .select("*")
             .eq("workspace_id", workspaceId)
-            .gte("date", startDate.toISOString())
-            .lte("date", endDate.toISOString());
+            .lt("date", endDate.toISOString())
+            .gt("ends_at", startDate.toISOString());
         if (error) throw error;
         return data.map(toEvent);
     },
@@ -54,7 +57,8 @@ export const eventRepository = {
     async updateEvent(id: number, updates: UpdateEventInput) {
         const payload: Database["public"]["Tables"]["events"]["Update"] = {};
         if (typeof updates.title === "string") payload.title = updates.title;
-        if (updates.date) payload.date = updates.date.toISOString();
+        if (updates.start) payload.date = updates.start.toISOString();
+        if (updates.end) payload.ends_at = updates.end.toISOString();
         if (updates.data !== undefined) payload.data = updates.data;
         if (typeof updates.templateId === "number") payload.template_id = updates.templateId;
 
@@ -72,6 +76,7 @@ export const eventRepository = {
             .from("events")
             .delete()
             .eq("id", id);
+
         if (error) throw error;
     },
 
@@ -80,7 +85,8 @@ export const eventRepository = {
             workspace_id: event.workspaceId,
             template_id: event.templateId,
             title: event.title,
-            date: event.date.toISOString(),
+            date: event.start.toISOString(),
+            ends_at: event.end.toISOString(),
             data: event.data,
         };
 
@@ -103,12 +109,18 @@ export const eventRepository = {
     },
 
     async updateEventById(id: string, updates: Partial<Event>) {
+        const payload: Database["public"]["Tables"]["events"]["Update"] = {};
+        if (typeof updates.title === "string") payload.title = updates.title;
+        if (updates.start) payload.date = updates.start.toISOString();
+        if (updates.end) payload.ends_at = updates.end.toISOString();
+        if (updates.data !== undefined) payload.data = updates.data as Database["public"]["Tables"]["events"]["Update"]["data"];
+        if (typeof updates.templateId === "number") payload.template_id = updates.templateId;
+
         const { data, error } = await supabase
             .from("events")
-            .update({
-                ...updates,
-            })
+            .update(payload)
             .eq("id", id)
+            .select()
             .single();
         if (error) throw error;
         return toEvent(data);

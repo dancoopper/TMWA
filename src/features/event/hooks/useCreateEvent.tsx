@@ -6,6 +6,8 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import { templateRepository } from "@/repositories/templateRepository";
 import type { EventFieldValue } from "@/features/event/eventFieldValues";
 import type { TemplateField } from "@/features/template/templateFields";
+import type { Event } from "@/features/event/models/Event";
+import { addDays } from "@/features/event/eventTimeRange";
 
 function getReadableErrorMessage(error: unknown): string {
     if (error instanceof Error) {
@@ -43,20 +45,26 @@ export function useCreateEvent() {
         mutationFn: async (
             {
                 title,
-                date,
+                start,
+                end,
+                repeatWeekly,
+                repeatWeeks,
                 data,
                 selectedTemplateId,
                 schema,
                 saveAsTemplateName,
             }: {
                 title: string;
-                date: Date;
+                start: Date;
+                end: Date;
+                repeatWeekly: boolean;
+                repeatWeeks: number;
                 data: EventFieldValue[];
                 selectedTemplateId?: number;
                 schema: TemplateField[];
                 saveAsTemplateName?: string;
             },
-        ) => {
+        ): Promise<Event> => {
             if (!session?.user.id) throw new Error("No active session");
             if (!selectedWorkspaceId) throw new Error("Please select a workspace first");
 
@@ -88,17 +96,35 @@ export function useCreateEvent() {
                 templateId = hiddenTemplate.id;
             }
 
-            return await eventRepository.createEvent({
-                title: title.trim(),
-                date,
-                workspaceId: selectedWorkspaceId,
-                templateId,
-                data,
-            });
+            const weeks = repeatWeekly ? Math.min(52, Math.max(1, repeatWeeks)) : 1;
+            const durationMs = end.getTime() - start.getTime();
+            if (durationMs <= 0) throw new Error("End time must be after start time");
+
+            let last: Event | null = null;
+            for (let w = 0; w < weeks; w++) {
+                const s = addDays(start, w * 7);
+                const e = new Date(s.getTime() + durationMs);
+                last = await eventRepository.createEvent({
+                    title: title.trim(),
+                    start: s,
+                    end: e,
+                    workspaceId: selectedWorkspaceId,
+                    templateId,
+                    data,
+                });
+            }
+
+            if (!last) throw new Error("No event created");
+            return last;
         },
-        onSuccess: async (event) => {
+        onSuccess: async (event, variables) => {
             selectEvent(event);
-            toast.success("Event created successfully!");
+            const n = variables.repeatWeekly
+                ? Math.min(52, Math.max(1, variables.repeatWeeks))
+                : 1;
+            toast.success(
+                n > 1 ? `Created ${n} weekly events` : "Event created successfully!",
+            );
             await queryClient.invalidateQueries({
                 queryKey: ["events"],
             });

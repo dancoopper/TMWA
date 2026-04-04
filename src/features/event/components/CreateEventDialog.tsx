@@ -17,14 +17,18 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { normalizeTemplateFields } from "@/features/template/templateFields";
+import { toast } from "sonner";
 
 const DEFAULT_TITLE = "Untitled";
 const DEFAULT_TIME = "09:00";
 const DEFAULT_FIELD_TYPE: TemplateFieldType = "text";
+
 interface CreateEventDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    initialDate?: Date;
+    initialStart?: Date;
+    initialEnd?: Date;
 }
 
 function toDateInputValue(date: Date) {
@@ -51,11 +55,16 @@ function getDefaultTimeValue(date?: Date) {
 export default function CreateEventDialog({
     open,
     onOpenChange,
-    initialDate,
+    initialStart,
+    initialEnd,
 }: CreateEventDialogProps) {
     const [title, setTitle] = useState(DEFAULT_TITLE);
-    const [dateValue, setDateValue] = useState(toDateInputValue(initialDate ?? new Date()));
-    const [timeValue, setTimeValue] = useState(getDefaultTimeValue(initialDate));
+    const [startDateValue, setStartDateValue] = useState(toDateInputValue(new Date()));
+    const [startTimeValue, setStartTimeValue] = useState(DEFAULT_TIME);
+    const [endDateValue, setEndDateValue] = useState(toDateInputValue(new Date()));
+    const [endTimeValue, setEndTimeValue] = useState(DEFAULT_TIME);
+    const [repeatWeekly, setRepeatWeekly] = useState(false);
+    const [repeatWeeks, setRepeatWeeks] = useState(8);
     const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
     const [customSchema, setCustomSchema] = useState<TemplateField[]>([]);
     const [eventValues, setEventValues] = useState<EventFieldValue[]>([]);
@@ -69,7 +78,10 @@ export default function CreateEventDialog({
         () => templates.find((template) => template.id === selectedTemplateId) ?? null,
         [selectedTemplateId, templates],
     );
-    const activeSchema = selectedTemplate ? selectedTemplate.data : customSchema;
+    const activeSchema = useMemo(
+        () => normalizeTemplateFields(selectedTemplate?.data ?? customSchema),
+        [selectedTemplate, customSchema],
+    );
     const isSubmitting = isPending;
 
     useEffect(() => {
@@ -93,19 +105,29 @@ export default function CreateEventDialog({
 
     useEffect(() => {
         if (!open) return;
-        const nextDate = initialDate ?? new Date();
-        setDateValue(toDateInputValue(nextDate));
-        setTimeValue(getDefaultTimeValue(initialDate));
+        const s = initialStart ? new Date(initialStart) : new Date();
+        const e = initialEnd ? new Date(initialEnd) : new Date(s.getTime() + 3_600_000);
+        setStartDateValue(toDateInputValue(s));
+        setStartTimeValue(getDefaultTimeValue(initialStart ?? undefined) || toTimeInputValue(s));
+        setEndDateValue(toDateInputValue(e));
+        setEndTimeValue(toTimeInputValue(e));
         setTitle(DEFAULT_TITLE);
+        setRepeatWeekly(false);
+        setRepeatWeeks(8);
         setNewFieldKey("");
         setNewFieldType(DEFAULT_FIELD_TYPE);
-    }, [initialDate, open]);
+    }, [initialStart, initialEnd, open]);
 
     const resetForm = () => {
         setTitle(DEFAULT_TITLE);
-        const nextDate = initialDate ?? new Date();
-        setDateValue(toDateInputValue(nextDate));
-        setTimeValue(getDefaultTimeValue(initialDate));
+        const s = initialStart ? new Date(initialStart) : new Date();
+        const e = initialEnd ? new Date(initialEnd) : new Date(s.getTime() + 3_600_000);
+        setStartDateValue(toDateInputValue(s));
+        setStartTimeValue(getDefaultTimeValue(initialStart ?? undefined) || toTimeInputValue(s));
+        setEndDateValue(toDateInputValue(e));
+        setEndTimeValue(toTimeInputValue(e));
+        setRepeatWeekly(false);
+        setRepeatWeeks(8);
         setNewFieldKey("");
         setNewFieldType(DEFAULT_FIELD_TYPE);
         if (templates.length > 0) {
@@ -123,13 +145,22 @@ export default function CreateEventDialog({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const parsedDate = new Date(`${dateValue}T${timeValue || DEFAULT_TIME}:00`);
+        const start = new Date(`${startDateValue}T${startTimeValue || DEFAULT_TIME}:00`);
+        const end = new Date(`${endDateValue}T${endTimeValue || DEFAULT_TIME}:00`);
+        if (end.getTime() <= start.getTime()) {
+            toast.error("End time must be after start time");
+            return;
+        }
+
         const normalizedValues = normalizeEventValues(activeSchema, eventValues);
 
         createEvent(
             {
                 title,
-                date: parsedDate,
+                start,
+                end,
+                repeatWeekly,
+                repeatWeeks,
                 selectedTemplateId: selectedTemplateId ?? undefined,
                 schema: activeSchema,
                 data: normalizedValues,
@@ -139,7 +170,7 @@ export default function CreateEventDialog({
                     resetForm();
                     onOpenChange(false);
                 },
-            }
+            },
         );
     };
 
@@ -176,7 +207,7 @@ export default function CreateEventDialog({
                 onOpenChange(nextOpen);
             }}
         >
-            <DialogContent className="sm:max-w-[425px] border-stone-400/50 bg-[#e7e2d4] text-stone-800">
+            <DialogContent className="sm:max-w-[480px] border-stone-400/50 bg-[#e7e2d4] text-stone-800 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-stone-800">Create Event</DialogTitle>
                     <DialogDescription className="text-stone-600">Add details and save.</DialogDescription>
@@ -197,30 +228,91 @@ export default function CreateEventDialog({
                             className="border-stone-400/50 bg-[#efe9dc] text-stone-800 placeholder:text-stone-500 focus-visible:ring-sky-500/25"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                            <Label htmlFor="date" className="text-stone-700">Date</Label>
-                            <Input
-                                id="date"
-                                type="date"
-                                value={dateValue}
-                                onChange={(e) => setDateValue(e.target.value)}
-                                required
-                                disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                            />
+
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">Starts</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label htmlFor="start-date" className="text-stone-700">Date</Label>
+                                <Input
+                                    id="start-date"
+                                    type="date"
+                                    value={startDateValue}
+                                    onChange={(e) => setStartDateValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="start-time" className="text-stone-700">Time</Label>
+                                <Input
+                                    id="start-time"
+                                    type="time"
+                                    value={startTimeValue}
+                                    onChange={(e) => setStartTimeValue(e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="time" className="text-stone-700">Time</Label>
-                            <Input
-                                id="time"
-                                type="time"
-                                value={timeValue}
-                                onChange={(e) => setTimeValue(e.target.value)}
-                                disabled={isSubmitting}
-                                className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
-                            />
+                    </div>
+
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">Ends</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label htmlFor="end-date" className="text-stone-700">Date</Label>
+                                <Input
+                                    id="end-date"
+                                    type="date"
+                                    value={endDateValue}
+                                    onChange={(e) => setEndDateValue(e.target.value)}
+                                    required
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="end-time" className="text-stone-700">Time</Label>
+                                <Input
+                                    id="end-time"
+                                    type="time"
+                                    value={endTimeValue}
+                                    onChange={(e) => setEndTimeValue(e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="border-stone-400/50 bg-[#efe9dc] text-stone-800 scheme-light focus-visible:ring-sky-500/25"
+                                />
+                            </div>
                         </div>
+                    </div>
+
+                    <div className="rounded-md border border-stone-400/40 bg-stone-200/30 px-3 py-2 space-y-2">
+                        <label className="flex items-center gap-2 text-sm text-stone-700 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={repeatWeekly}
+                                onChange={(e) => setRepeatWeekly(e.target.checked)}
+                                disabled={isSubmitting}
+                                className="accent-[#8d9b67]"
+                            />
+                            Repeat weekly
+                        </label>
+                        {repeatWeekly && (
+                            <div className="flex items-center gap-2 pl-6">
+                                <Label htmlFor="repeat-weeks" className="text-xs text-stone-600 shrink-0">Weeks</Label>
+                                <Input
+                                    id="repeat-weeks"
+                                    type="number"
+                                    min={1}
+                                    max={52}
+                                    value={repeatWeeks}
+                                    onChange={(e) => setRepeatWeeks(Number(e.target.value) || 1)}
+                                    disabled={isSubmitting}
+                                    className="h-8 w-20 border-stone-400/50 bg-[#efe9dc] text-stone-800"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {activeSchema.length > 0 ? (

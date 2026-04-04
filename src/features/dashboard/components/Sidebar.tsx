@@ -20,7 +20,7 @@ const views = [
 ];
 
 export default function Sidebar() {
-    const { leftSidebarCollapsed, toggleLeftSidebar } = useDashboardStore();
+    const { leftSidebarCollapsed, toggleLeftSidebar, mainView, setMainView } = useDashboardStore();
     useWorkspaceSelectionSync();
     const navigate = useNavigate();
 
@@ -79,9 +79,11 @@ export default function Sidebar() {
                         </h3>
                     )}
                     <nav className="space-y-0.5">
-                        {views.map((view, idx) => (
+                        {views.map((view) => (
                             <button
                                 key={view.id}
+                                type="button"
+                                onClick={() => setMainView(view.id as "calendar" | "tasks")}
                                 className={`
                                     w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
                                     text-stone-600 hover:text-stone-800 hover:bg-stone-300/50
@@ -90,7 +92,7 @@ export default function Sidebar() {
                                     leftSidebarCollapsed ? "justify-center" : ""
                                 }
                                     ${
-                                    idx === 0
+                                    mainView === view.id
                                         ? "bg-stone-300/40 text-stone-800"
                                         : ""
                                 }

@@ -2,6 +2,7 @@ import { useEvents } from "@/features/event/hooks/useEvents";
 import type { Event } from "@/features/event/models/Event";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useMemo } from "react";
+import { startOfDay } from "@/features/event/eventTimeRange";
 import CalendarMonthCell from "./CalendarMonthCell";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -60,10 +61,16 @@ export default function CalendarGrid() {
         const grouped = new Map<string, Event[]>();
 
         for (const event of events) {
-            const dayKey = toDayKey(event.date);
-            const dayEvents = grouped.get(dayKey) ?? [];
-            dayEvents.push(event);
-            grouped.set(dayKey, dayEvents);
+            const d0 = startOfDay(event.start);
+            const d1 = startOfDay(event.end);
+            const cursor = new Date(d0);
+            while (cursor <= d1) {
+                const dayKey = toDayKey(cursor);
+                const dayEvents = grouped.get(dayKey) ?? [];
+                dayEvents.push(event);
+                grouped.set(dayKey, dayEvents);
+                cursor.setDate(cursor.getDate() + 1);
+            }
         }
 
         return grouped;
@@ -101,7 +108,7 @@ export default function CalendarGrid() {
         if (!isCurrentMonth) return;
         const newDate = new Date(year, month, day);
         setSelectedDate(newDate);
-        openCreateEventDialog(newDate);
+        openCreateEventDialog({ start: newDate });
     };
 
     return (

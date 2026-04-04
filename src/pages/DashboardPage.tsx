@@ -4,6 +4,7 @@ import {
     CalendarWeekView,
     DayDetailPanel,
     Sidebar,
+    TasksMainPanel,
 } from "@/features/dashboard/components";
 import WorkspaceCollaborationSync from "@/features/workspace/components/WorkspaceCollaborationSync";
 import CreateEventDialog from "@/features/event/components/CreateEventDialog";
@@ -11,9 +12,11 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 
 export default function DashboardPage() {
     const {
+        mainView,
         calendarView,
         createEventDialogOpen,
-        createEventInitialDate,
+        createEventInitialStart,
+        createEventInitialEnd,
         closeCreateEventDialog,
     } = useDashboardStore();
 
@@ -30,10 +33,11 @@ export default function DashboardPage() {
             <main className="flex-1 flex flex-col overflow-hidden relative">
                 <CalendarHeader />
 
-                {/* Calendar Views with Animation */}
-                <div className="flex-1 relative overflow-hidden">
-                    <div
-                        className={`
+                {mainView === "calendar"
+                    ? (
+                        <div className="flex-1 relative overflow-hidden">
+                            <div
+                                className={`
                             absolute inset-0 transition-all duration-500 ease-out
                             ${
                             calendarView === "month"
@@ -41,11 +45,11 @@ export default function DashboardPage() {
                                 : "opacity-0 -translate-x-full pointer-events-none"
                         }
                         `}
-                    >
-                        <CalendarGrid />
-                    </div>
-                    <div
-                        className={`
+                            >
+                                <CalendarGrid />
+                            </div>
+                            <div
+                                className={`
                             absolute inset-0 transition-all duration-500 ease-out
                             ${
                             calendarView === "week"
@@ -53,10 +57,14 @@ export default function DashboardPage() {
                                 : "opacity-0 translate-x-full pointer-events-none"
                         }
                         `}
-                    >
-                        <CalendarWeekView />
-                    </div>
-                </div>
+                            >
+                                <CalendarWeekView />
+                            </div>
+                        </div>
+                    )
+                    : (
+                        <TasksMainPanel />
+                    )}
             </main>
 
             {/* Right Day Detail Panel */}
@@ -68,7 +76,8 @@ export default function DashboardPage() {
                         closeCreateEventDialog();
                     }
                 }}
-                initialDate={createEventInitialDate ?? undefined}
+                initialStart={createEventInitialStart ?? undefined}
+                initialEnd={createEventInitialEnd ?? undefined}
             />
         </div>
     );

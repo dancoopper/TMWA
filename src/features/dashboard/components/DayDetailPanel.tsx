@@ -6,7 +6,8 @@ import { useTemplates } from "@/features/template/hooks/useTemplates";
 import { normalizeTemplateFields } from "@/features/template/templateFields";
 import { buildEventPreview, normalizeEventValues } from "@/features/event/eventFieldValues";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { useMemo, useState } from "react";
+import { eventOverlapsHour, formatEventTimeRange } from "@/features/event/eventTimeRange";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PanelRightClose, PanelRight, PenLine, Trash2, X } from "lucide-react";
 import {
     AlertDialog,
@@ -115,25 +116,33 @@ export default function DayDetailPanel() {
         }
         return mapped;
     }, [templates]);
-    const eventsByHour = useMemo(() => {
-        const grouped = new Map<number, Event[]>();
-
-        for (const event of events) {
-            const hour = event.date.getHours();
-            const slotEvents = grouped.get(hour) ?? [];
-            slotEvents.push(event);
-            grouped.set(hour, slotEvents);
-        }
-
-        return grouped;
-    }, [events]);
-
     const getSlotEvents = (timeSlot: string) => {
         const hour24 = parseHour24(timeSlot);
         if (hour24 === null) return [];
-
-        return eventsByHour.get(hour24) ?? [];
+        return events.filter((ev) => eventOverlapsHour(ev, selectedDate, hour24));
     };
+
+    const dragRef = useRef<{ anchorHour: number } | null>(null);
+    const rangeRef = useRef<{ min: number; max: number } | null>(null);
+    const [dragHighlight, setDragHighlight] = useState<{ min: number; max: number } | null>(null);
+
+    useEffect(() => {
+        const onPointerUp = () => {
+            if (!dragRef.current) return;
+            const r = rangeRef.current;
+            dragRef.current = null;
+            rangeRef.current = null;
+            setDragHighlight(null);
+            if (!r) return;
+            const start = new Date(selectedDate);
+            start.setHours(r.min, 0, 0, 0);
+            const end = new Date(selectedDate);
+            end.setHours(r.max + 1, 0, 0, 0);
+            openCreateEventDialog({ start, end });
+        };
+        window.addEventListener("pointerup", onPointerUp);
+        return () => window.removeEventListener("pointerup", onPointerUp);
+    }, [selectedDate, openCreateEventDialog]);
     const currentHour = today.getHours();
     const currentMinute = today.getMinutes();
     const currentTimeLabel = formatCurrentTimeLabel(today);
@@ -148,14 +157,6 @@ export default function DayDetailPanel() {
             year: "numeric",
         });
     };
-    const formatSelectedEventDate = (date: Date) =>
-        date.toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-        });
-
     const handleDeleteSelectedEvent = () => {
         if (!selectedEvent) return;
 
@@ -218,6 +219,11 @@ export default function DayDetailPanel() {
                             const slotHour = parseHour24(time);
                             const showCurrentTimeLine =
                                 showCurrentDayIndicator && slotHour !== null && slotHour === currentHour;
+                            const inDrag =
+                                dragHighlight !== null &&
+                                slotHour !== null &&
+                                slotHour >= dragHighlight.min &&
+                                slotHour <= dragHighlight.max;
 
                             return (
                                 <div
@@ -239,17 +245,33 @@ export default function DayDetailPanel() {
                                         {time}
                                     </div>
                                     <div
-                                        className="relative flex-1 border-l border-stone-400/40 px-2 py-1.5 cursor-pointer hover:bg-[#1f2128]/15 transition-colors duration-200"
-                                        onClick={() => {
+                                        className={`
+                                            relative flex-1 border-l border-stone-400/40 px-2 py-1.5 cursor-pointer
+                                            hover:bg-[#1f2128]/15 transition-colors duration-200 select-none touch-none
+                                            ${inDrag ? "bg-sky-500/20" : ""}
+                                        `}
+                                        onPointerDown={(e) => {
                                             if (slotHour === null) return;
-                                            const slotDate = new Date(selectedDate);
-                                            slotDate.setHours(slotHour, 0, 0, 0);
-                                            openCreateEventDialog(slotDate);
+                                            e.currentTarget.setPointerCapture(e.pointerId);
+                                            dragRef.current = { anchorHour: slotHour };
+                                            rangeRef.current = { min: slotHour, max: slotHour };
+                                            setDragHighlight({ min: slotHour, max: slotHour });
+                                        }}
+                                        onPointerEnter={() => {
+                                            if (!dragRef.current || slotHour === null) return;
+                                            const ah = dragRef.current.anchorHour;
+                                            const r = {
+                                                min: Math.min(ah, slotHour),
+                                                max: Math.max(ah, slotHour),
+                                            };
+                                            rangeRef.current = r;
+                                            setDragHighlight(r);
                                         }}
                                     >
                                         {slotEvents.slice(0, 2).map((event) => (
                                             <div
                                                 key={event.id}
+                                                onPointerDown={(e) => e.stopPropagation()}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     selectEvent(event);
@@ -287,7 +309,7 @@ export default function DayDetailPanel() {
                                         {selectedEvent.title}
                                     </p>
                                     <p className="text-[11px] text-stone-600">
-                                        {formatSelectedEventDate(selectedEvent.date)}
+                                        {formatEventTimeRange(selectedEvent)}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -328,7 +350,7 @@ export default function DayDetailPanel() {
                                                 <AlertDialogDescription className="text-stone-600">
                                                     This will permanently delete{" "}
                                                     <strong>{selectedEvent.title}</strong> on{" "}
-                                                    <strong>{formatSelectedEventDate(selectedEvent.date)}</strong>. This action cannot be undone.
+                                                    <strong>{formatEventTimeRange(selectedEvent)}</strong>. This action cannot be undone.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>

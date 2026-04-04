@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           data: Json
           date: string
+          ends_at: string
           id: number
           template_id: number
           title: string
@@ -21,6 +22,7 @@ export type Database = {
         Insert: {
           data: Json
           date: string
+          ends_at: string
           id?: number
           template_id: number
           title: string
@@ -29,6 +31,7 @@ export type Database = {
         Update: {
           data?: Json
           date?: string
+          ends_at?: string
           id?: number
           template_id?: number
           title?: string

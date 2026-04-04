@@ -10,16 +10,18 @@ export function useUpdateEvent() {
         mutationFn: ({
             id,
             title,
-            date,
+            start,
+            end,
             data,
             templateId,
         }: {
             id: number;
             title: string;
-            date: Date;
+            start: Date;
+            end: Date;
             data?: EventFieldValue[];
             templateId?: number;
-        }) => eventRepository.updateEvent(id, { title, date, data, templateId }),
+        }) => eventRepository.updateEvent(id, { title, start, end, data, templateId }),
         onSuccess: async () => {
             toast.success("Event updated successfully!");
             await queryClient.invalidateQueries({
