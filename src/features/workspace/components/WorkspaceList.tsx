@@ -1,5 +1,6 @@
 import { useWorkspaces } from "@/features/workspace/hooks/useWorkspaces";
-import { EllipsisVertical, Pen, Trash } from "lucide-react";
+import { useWorkspaceMembersBulk } from "@/features/workspace/hooks/useWorkspaceMembersBulk";
+import { EllipsisVertical, Pen, Trash, UsersRound } from "lucide-react";
 import EditWorkspaceDialog from "./EditWorkspaceDialog";
 import {
     Popover,
@@ -15,6 +16,7 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 
 export default function WorkspaceList() {
     const { data: workspaces, isLoading } = useWorkspaces();
+    const { data: membersBulk } = useWorkspaceMembersBulk();
     const { selectedWorkspaceId, setSelectedWorkspaceId } = useDashboardStore();
 
     if (isLoading) {
@@ -29,9 +31,14 @@ export default function WorkspaceList() {
         return null;
     }
 
+    const collaborativeIds = membersBulk?.collaborativeWorkspaceIds ?? [];
+
     return (
         <div className="flex flex-col gap-0.5">
-            {workspaces.map((workspace) => (
+            {workspaces.map((workspace) => {
+                const showCollaborativeIcon = collaborativeIds.includes(workspace.id);
+
+                return (
                 <div
                     key={workspace.id}
                     className={`
@@ -43,13 +50,28 @@ export default function WorkspaceList() {
                     `}
                 >
                     <button
-                        className="flex items-center gap-2.5 flex-1 text-left min-w-0"
+                        className="flex items-center gap-2 flex-1 text-left min-w-0"
                         onClick={() => setSelectedWorkspaceId(workspace.id)}
                     >
                         <div
                             className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedWorkspaceId === workspace.id ? "bg-stone-700" : "bg-stone-500"}`}
                         />
-                        <span className="truncate">{workspace.name}</span>
+                        {showCollaborativeIcon && (
+                            <span
+                                title="Collaborative workspace (multiple members)"
+                                className="shrink-0 inline-flex"
+                            >
+                                <UsersRound
+                                    className={`w-3.5 h-3.5 ${
+                                        selectedWorkspaceId === workspace.id
+                                            ? "text-sky-700"
+                                            : "text-sky-600 group-hover:text-sky-200"
+                                    }`}
+                                    aria-hidden
+                                />
+                            </span>
+                        )}
+                        <span className="truncate flex-1 min-w-0">{workspace.name}</span>
                     </button>
 
                     <Popover>
@@ -98,7 +120,8 @@ export default function WorkspaceList() {
                         </PopoverContent>
                     </Popover>
                 </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
